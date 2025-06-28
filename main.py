@@ -7,8 +7,8 @@ import random
 main_menu = {
     0: "About",
     1: "Continue",
-    2: "Create",
     "Create": {
+        "title": "Create",
         0: "Create Experience",
         1: "Create World",
         2: "Create Civilization",
@@ -18,8 +18,8 @@ main_menu = {
     },
     3: "Share",
     4: "Play",
-    5: "Setting",
     "Setting": {
+        "title": "Setting",
         0: "surprise!",
         1: "Setting",
         2: "Developer",
@@ -29,17 +29,17 @@ main_menu = {
 
 
 def function_map(context: tcod.context.new_terminal, root_console: tcod.console.Console, choice: list) -> None:
-    if choice == ['Main Menu', 'Continue']:
+    if choice[-1][0] == 'Continue':
         Play.play(context, root_console, continue_game=True)
-    elif choice == ['Main Menu', 'Create', 'Create World']:
+    elif choice[-1][0] == 'Create World':
         Create_World_State.main(context, root_console)
-    elif choice == ['Main Menu', 'Create', 'Create Civilization']:
+    elif choice[-1][0] == 'Create Civilization':
         Create_Civilization_State.main(context, root_console)
-    elif choice == ['Main Menu', 'Create', 'Create Gameplay']:
+    elif choice[-1][0] == 'Create Gameplay':
         Create_Gameplay_State.main(context, root_console)
-    elif choice == ['Main Menu', 'Play']:
+    elif choice[-1][0] == 'Play':
         Play.play(context, root_console)
-    elif choice == ['Main Menu', 'Setting', 'surprise!']:
+    elif choice[-1][0] == 'surprise!':
         UI.BG = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         system_theme = UI.color_rotation_calculator(bg_rgb=UI.BG,
                                                  strategy=random.choice([UI.PREFERENCE1, UI.PREFERENCE2, UI.PREFERENCE3]),
@@ -72,7 +72,7 @@ def main() -> None:
     ) as context:
         root_console = tcod.console.Console(width=screen_width, height=screen_height)
         background = UI.ntcod_textout(0, 0, 50, 75, "", False, "", draw_frame=False)
-        menu = UI.ntcod_menu(17, 20, 17, 35, draw_frame=False, title="Main Menu")
+        menu = UI.ntcod_menu(17, 20, 17, 35, draw_frame=False, title="Main Menu", adaptive=True)
         menu.set_direct_menu(main_menu)
         window = UI.tcod_window(background, menu)
         window.set_focus(1)

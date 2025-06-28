@@ -293,143 +293,93 @@ class tcod_window:
                     last_choice = frame_obj.last_choice
                     choice = frame_obj.choice
 
-                    if frame_obj.adaptive:
-                        layout, col_widths = frame_obj.get_adaptive_layout()
+                    layout, col_widths = frame_obj.get_adaptive_layout()
 
-                        # 映射：menu_idx -> (row, col)
-                        pos_map = {menu_idx: (r, c) for r, row in enumerate(layout) for c, (menu_idx, _) in
-                                   enumerate(row)}
+                    # 映射：menu_idx -> (row, col)
+                    pos_map = {menu_idx: (r, c) for r, row in enumerate(layout) for c, (menu_idx, _) in
+                               enumerate(row)}
 
-                        if frame_obj.choice not in pos_map:
-                            frame_obj.choice = layout[0][0][0]  # fallback to first item
+                    if frame_obj.choice not in pos_map:
+                        frame_obj.choice = layout[0][0][0]  # fallback to first item
 
-                        r, c = pos_map[frame_obj.choice]
-                        max_r = len(layout)
+                    r, c = pos_map[frame_obj.choice]
+                    max_r = len(layout)
 
-                        def safe_get(layout, row, col):
-                            if 0 <= row < len(layout):
-                                if 0 <= col < len(layout[row]):
-                                    return layout[row][col][0]
-                                else:
-                                    return layout[row][-1][0]
-                            return layout[0][0][0]
-
-                        if event_code == ["S", "UP"]:
-                            new_r = r - 1
-                            if new_r >= 0:
-                                if c < len(layout[new_r]):
-                                    frame_obj.choice = layout[new_r][c][0]
-                                else:
-                                    frame_obj.choice = layout[new_r][-1][0]
+                    def safe_get(layout, row, col):
+                        if 0 <= row < len(layout):
+                            if 0 <= col < len(layout[row]):
+                                return layout[row][col][0]
                             else:
-                                # 在第0行，向上 wrap 到最后一行（含 [►] 的情况）
-                                last_row = layout[-1]
-                                frame_obj.choice = last_row[c if c < len(last_row) else -1][0]
-                        elif event_code == ["S", "DOWN"]:
-                            new_r = r + 1
-                            if new_r < len(layout):
-                                # 正常向下
-                                if c < len(layout[new_r]):
-                                    frame_obj.choice = layout[new_r][c][0]
-                                else:
-                                    frame_obj.choice = layout[new_r][-1][0]
+                                return layout[row][-1][0]
+                        return layout[0][0][0]
+
+                    if event_code == ["S", "UP"]:
+                        new_r = r - 1
+                        if new_r >= 0:
+                            frame_obj.choice = layout[new_r][c][0]
+                        else:
+                            if len(layout[-1]) > c:
+                                frame_obj.choice = layout[-1][c][0]
                             else:
-                                # ⬇️ 到底部后跳到最顶行相同列（非自动进入）
-                                if c < len(layout[0]):
-                                    frame_obj.choice = layout[0][c][0]
-                                else:
-                                    frame_obj.choice = layout[0][-1][0]
-
-                        elif event_code == ["S", "LEFT"]:
-                            if c > 0:
-                                frame_obj.choice = layout[r][c - 1][0]
+                                frame_obj.choice = layout[-2][c][0]
+                    elif event_code == ["S", "DOWN"]:
+                        new_r = r + 1
+                        if new_r < len(layout):
+                            if c < len(layout[new_r]):
+                                frame_obj.choice = layout[new_r][c][0]
                             else:
-                                prev_r = (r - 1) % max_r
-                                frame_obj.choice = layout[prev_r][-1][0]
+                                frame_obj.choice = layout[0][c][0]
+                        else:
+                            frame_obj.choice = layout[0][c][0]
 
-                        elif event_code == ["S", "RIGHT"]:
-                            if c + 1 < len(layout[r]):
-                                frame_obj.choice = layout[r][c + 1][0]
-                            else:
-                                next_r = (r + 1) % max_r
-                                frame_obj.choice = layout[next_r][0][0]
+                    elif event_code == ["S", "LEFT"]:
+                        if c > 0:
+                            frame_obj.choice = layout[r][c - 1][0]
+                        else:
+                            frame_obj.choice = layout[r][-1][0]
 
-                        curser[position[-1]] = frame_obj.choice
-                    else:
-                        if choice > last_choice:
-                            choice = last_choice
-                            curser[position[-1]] = choice
-                        if (event_code == ["S", "UP"]) & (choice != 0):
-                            choice -= 1
-                            curser[position[-1]] = choice
-                        elif (event_code == ["S", "DOWN"]) & (choice != last_choice):
-                            choice += 1
-                            curser[position[-1]] = choice
-                        elif (event_code == ["S", "UP"]) & (choice == 0):
-                            choice = last_choice
-                            curser[position[-1]] = choice
-                        elif (event_code == ["S", "DOWN"]) & (choice == last_choice):
-                            choice = 0
-                            curser[position[-1]] = choice
-                        frame_obj.choice = choice
+                    elif event_code == ["S", "RIGHT"]:
+                        if c + 1 < len(layout[r]):
+                            frame_obj.choice = layout[r][c + 1][0]
+                        else:
+                            frame_obj.choice = layout[r][0][0]
 
-                    if frame_obj.adaptive:
-                        # 进入或确认当前项
-                        if (event_code == ["N", "z"]) | (event_code == ["S", "RETURN"]):
-                            test = False
-                            current_key = frame_obj.choice
-
-                            if isinstance(this_menu[-1][current_key], list):
-                                if this_menu[-1][current_key][0] in this_menu[-1].keys():
-                                    test = True
-                            else:
-                                if this_menu[-1][current_key] in this_menu[-1].keys():
-                                    test = True
-
-                            if test:
-                                # ✅ 进入子菜单前记住当前 choice
-                                curser[position[-1]] = current_key
-
-                                position.append(this_menu[-1][current_key])
-                                this_menu.append(this_menu[-1][this_menu[-1][current_key]])
-
-                                # ✅ 从 curser 恢复子菜单的 choice（若存在）
-                                new_key = position[-1]
-                                if new_key not in curser:
-                                    curser[new_key] = 0
-                                frame_obj.choice = curser[new_key]
-                                break
-                            else:
-                                return_position = copy.deepcopy(position)
-                                return_position.append(this_menu[-1][current_key])
-                                return return_position
-
+                    curser[len(position) - 1] = [position[-1], frame_obj.choice]
 
                     # 进入或确认当前项
                     if (event_code == ["N", "z"]) | (event_code == ["S", "RETURN"]):
                         test = False
-                        if isinstance(this_menu[-1][frame_obj.choice], list):
-                            if this_menu[-1][frame_obj.choice][0] in this_menu[-1].keys():
+                        current_key = frame_obj.choice
+
+                        if isinstance(this_menu[-1][current_key], list):
+                            if this_menu[-1][current_key][0] in this_menu[-1].keys():
                                 test = True
                         else:
-                            if this_menu[-1][frame_obj.choice] in this_menu[-1].keys():
+                            if this_menu[-1][current_key] in this_menu[-1].keys():
                                 test = True
+
                         if test:
-                            position.append(this_menu[-1][frame_obj.choice])
-                            this_menu.append(this_menu[-1][this_menu[-1][frame_obj.choice]])
-                            if position[-1] not in list(curser.keys()):
-                                curser[position[-1]] = 0
+                            # ✅ 进入子菜单前记住当前 choice
+                            curser[len(position) - 1] = [position[-1], current_key]
+
+                            position.append(this_menu[-1][current_key])
+                            this_menu.append(this_menu[-1][this_menu[-1][current_key]])
+
+                            # ✅ 从 curser 恢复子菜单的 choice（若存在）
+                            new_key = position[-1]
+                            level_in = len(position) - 1
+                            if (level_in >= len(curser)) or (new_key != curser[level_in][0]):
+                                curser.append([new_key, 0])
+                            frame_obj.choice = curser[level_in][1]
                             break
                         else:
                             return_position = copy.deepcopy(position)
-                            return_position.append(this_menu[-1][frame_obj.choice])
+                            return_position.append(this_menu[-1][current_key])
                             return return_position
-
-                    elif (event_code == ["N", "x"]) | (event_code == ["S", "BACKSPACE"]):
+                    if (event_code == ["N", "x"]) | (event_code == ["S", "BACKSPACE"]):
                         if len(this_menu) > 1:
                             position.pop()
                             this_menu.pop()
-                            del curser[list(curser)[-1]]
                             break
                         else:
                             return "last_page"
@@ -722,7 +672,7 @@ class ntcod_textout(tcod_frame):
 
 
 class ntcod_menu(tcod_frame):
-    def __init__(self, start_y, start_x, y_span, x_span, draw_frame=True, title="Choose Action", adaptive=False):
+    def __init__(self, start_y, start_x, y_span, x_span, draw_frame=True, title="Choose Action", adaptive=True):
         super().__init__(start_y, start_x, y_span, x_span, draw_frame=draw_frame)
         self.title = title
         self.menu = {"title": title}
@@ -733,9 +683,7 @@ class ntcod_menu(tcod_frame):
         self.choice = 0
         self.position = [self.menu["title"]]
         self.this_menu = [self.menu]
-        self.curser = {
-            self.menu["title"]: 0
-        }
+        self.curser = [[self.menu["title"], 0]]
         self.last_choice = -1
 
         self.master_menu = self.menu
@@ -797,8 +745,8 @@ class ntcod_menu(tcod_frame):
             col_widths = [0] * num_cols
 
             for idx, (menu_idx, label_str) in enumerate(items):
-                row = idx % num_rows
-                col = idx // num_rows
+                col = idx % num_cols
+                row = idx // num_cols
                 layout[row].append((menu_idx, label_str))
                 col_widths[col] = max(col_widths[col], len(label_str))
 
@@ -811,19 +759,9 @@ class ntcod_menu(tcod_frame):
         return layout, col_widths
 
     def set_direct_menu(self, new_menu):
-        self.menu = new_menu
-        self.menu["title"] = self.title
-        self.choice = 0
-        self.position = [self.menu["title"]]
-        self.this_menu = [self.menu]
-        self.curser = {
-            self.menu["title"]: 0
-        }
-        self.last_choice = -1
-
-        self.master_menu = self.menu
-        self.thisin_menu = self.menu
-        self.index = 0
+        self.clear()
+        for item in new_menu.keys():
+            self.add_menu_item(new_menu[item], "system")
 
     def add_menu_item(self, item, from_mod):
         if self.adaptive:
@@ -885,50 +823,23 @@ class ntcod_menu(tcod_frame):
         print_line += 1
 
         if isinstance(self.position[-1], list):
-            if self.position[-1][0] in self.curser:
-                self.choice = self.curser[self.position[-1][0]]
-        elif self.position[-1] in self.curser:
-            self.choice = self.curser[self.position[-1]]
+            if self.position[-1][0] in self.curser[len(self.position) - 1]:
+                self.choice = self.curser[len(self.position) - 1][self.position[-1][0]]
+        elif self.position[-1] in self.curser[len(self.position) - 1]:
+            self.choice = self.curser[len(self.position) - 1][1]
 
-        index = 0
-        menu_to_print = self.this_menu[-1]
-        if len(self.curser) > 1 and len(self.this_menu) == 1:
-            for skip, level in enumerate(self.curser.keys()):
-                if skip == 0:
-                    continue
-                menu_to_print = menu_to_print[level]
-                self.position.append(self.this_menu[-1][self.choice])
-                self.this_menu.append(self.this_menu[-1][self.this_menu[-1][self.choice]])
-                if self.position[-1] not in self.curser:
-                    self.curser[self.position[-1]] = 0
+        layout, col_widths = self.get_adaptive_layout()
+        start_y = self.start_print_y + 1
+        spacing = 2
 
-        if self.adaptive:
-            layout, col_widths = self.get_adaptive_layout()
-            start_y = self.start_print_y + 1
-            spacing = 2
-
-            is_single_column = all(len(row) == 1 for row in layout)
-
-            for row_idx, row in enumerate(layout):
-                cursor_x = self.start_print_x + 1
-                for col_idx, (menu_idx, label_str) in enumerate(row):
-                    padded = label_str.ljust(col_widths[col_idx])
-                    fg = FGF if menu_idx == self.choice else FGN
-                    y_pos = start_y + row_idx * (2 if is_single_column else 1)
-                    console.print(y=y_pos + 1, x=cursor_x, string=padded, fg=fg)
-        else:
-            for i in menu_to_print:
-                if print_line <= self.texty_span and isinstance(i, int):
-                    print_line += 1
-                    thisstring = f"[{menu_to_print[i][0]}]" if isinstance(menu_to_print[i], list) else f"[{menu_to_print[i]}]"
-                    fg = FGF if index == self.choice else FGN
-                    if len(thisstring) > self.text_span:
-                        console.print(y=self.start_print_y + print_line, x=self.start_print_x + 1,
-                                      string=thisstring[:self.text_span - 4] + "...]", fg=fg)
-                    else:
-                        console.print(y=self.start_print_y + print_line, x=self.start_print_x + 1,
-                                      string=thisstring, fg=fg)
-                    index += 1
+        for row_idx, row in enumerate(layout):
+            cursor_x = self.start_print_x + 1
+            for col_idx, (menu_idx, label_str) in enumerate(row):
+                padded = label_str.ljust(col_widths[col_idx])
+                fg = FGF if menu_idx == self.choice else FGN
+                y_pos = start_y + row_idx * 2
+                console.print(y=y_pos + 1, x=cursor_x, string=padded, fg=fg)
+                cursor_x += spacing + len(padded)
 
         self.last_choice = print_line - 2
 

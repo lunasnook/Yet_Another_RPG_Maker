@@ -91,6 +91,10 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
         mainmenu.add_menu_item("go to page", "system")
         mainmenu.add_menu_item("pin unpin section", "system")
         mainmenu.add_menu_item("hide unhide section", "system")
+        for i in range(20):
+            mainmenu.add_menu_item("test1", "system")
+            mainmenu.add_menu_item("test2", "system")
+            mainmenu.add_menu_item("test", "system")
         for mod in list(mods.keys()):
             this_list = mods[mod].get_actions(map=local_map, peoples=peoples, mods=mods, window=window, context=context, console=console)
             if not (this_list is None):
@@ -123,7 +127,7 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
             this_menu_ui.set_direct_menu(this_menu)
             whichinfo = window.pop_frame(this_menu_ui, context, console)
             if whichinfo != "last_page":
-                mainout.add_pinned(index_info[whichinfo[1]][0], index_info[whichinfo[1]][1])
+                mainout.add_pinned(index_info[whichinfo[-1][0]][0], index_info[whichinfo[-1][0]][1])
         elif choice[-1][0] == "hide unhide section":
             this_menu = {}
             i = 0
@@ -139,7 +143,7 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
             this_menu_ui.set_direct_menu(this_menu)
             whichinfo = window.pop_frame(this_menu_ui, context, console)
             if whichinfo != "last_page":
-                mainout.add_hidden(index_info[whichinfo[1]][0], index_info[whichinfo[1]][1])
+                mainout.add_hidden(index_info[whichinfo[-1][0]][0], index_info[whichinfo[-1][0]][1])
 
         elif choice[-1][0] == "Save and Quit":
             IO.save_object_to_file("Continue/", "world", "world", world, False)

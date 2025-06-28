@@ -86,14 +86,14 @@ create_civilization_menu = {
 
 
 def output_function_map(context: tcod.context.new_terminal, console: tcod.console.Console, choice: list, output: dict, window: UI.tcod_window) -> dict:
-    if choice == ["Create Civilization Menu", "Name Civilization To Create"]:
+    if choice[-1][0] == "Name Civilization To Create":
         thisin = UI.ntcod_input(17, 25, 17, 25, output["civilization_name"], "civilization name[A-Z,a-z,0-9,' ']", False)
         output["civilization_name"] = window.pop_frame(thisin, context, console)
-    elif choice == ["Create Civilization Menu", "Set The Number of People"]:
+    elif choice[-1][0] == "Set The Number of People":
         thisin = UI.ntcod_input(17, 25, 17, 25, output["number"],
                                        "number of people [0-9]", True)
         output["number"] = window.pop_frame(thisin, context, console)
-    elif choice == ["Create Civilization Menu", 'Continue To Mods']:
+    elif choice[-1][0] == 'Continue To Mods':
         output["continue"] = True
     return output
 

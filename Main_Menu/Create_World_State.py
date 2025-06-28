@@ -79,15 +79,15 @@ create_world_menu = {
 
 
 def output_function_map(context: tcod.context.new_terminal, console: tcod.console.Console, choice: list, output: dict, window: UI.tcod_window) -> dict:
-    if choice == ['Create World Menu', 'Name The World To Be Created']:
+    if choice[-1][0] == 'Name The World To Be Created':
         thisin = UI.ntcod_input(17, 25, 17, 25, output["world_name"], "world name[A-Z,a-z,0-9,' ']", False)
         output["world_name"] = window.pop_frame(thisin, context, console)
-    elif choice == ['Create World Menu', 'Set The World Dimensions']:
+    elif choice[-1][0] == 'Set The World Dimensions':
         thisin = UI.ntcod_input(17, 25, 17, 25, output["height"], "height[0-9]", True)
         output["height"] = window.pop_frame(thisin, context, console)
         thisin = UI.ntcod_input(17, 25, 17, 25, output["width"], "width[0-9]", True)
         output["width"] = window.pop_frame(thisin, context, console)
-    elif choice == ['Create World Menu', 'Continue To Mods']:
+    elif choice[-1][0] == 'Continue To Mods':
         output["continue"] = True
     return output
 

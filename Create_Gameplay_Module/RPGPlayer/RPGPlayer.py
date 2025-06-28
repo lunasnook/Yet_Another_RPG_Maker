@@ -119,7 +119,7 @@ class RPGPlayer:
             this_menu_UI.set_direct_menu(menu_of_submap)
             choice = window.pop_frame(this_menu_UI, context, console)
             for i in range(index):
-                if menu_of_submap[i] == choice[-1]:
+                if menu_of_submap[i] == choice[-1][0]:
                     choice = i
                     break
             self.player_added = False

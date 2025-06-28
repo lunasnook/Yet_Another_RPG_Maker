@@ -72,7 +72,7 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
     def modconfig_function_map(context, console, choice, mod_manager, mod_ordered, config_ordered,
                                module_ordered):
         finish = False
-        if choice == ['Mods Configuration Menu', 'Load Template']:
+        if choice == 'Load Template':
             templates = glob.glob(template_place + "/*", recursive=True)
             templates_menu = {}
             index = 0
@@ -94,7 +94,7 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
                     return finish
                 console.clear()
 
-                mods = glob.glob(template_place + choice[1] + "/*.json", recursive=True)
+                mods = glob.glob(template_place + choice[-1][0] + "/*.json", recursive=True)
                 id_table = {}
                 mods_tobe_added = {}
                 for i in mods:
@@ -110,7 +110,7 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
                     load_mod(mod_config, id_table, mod_manager, mods_tobe_added, mod_ordered, config_ordered,
                              module_ordered)
                 return finish
-        elif choice == ['Mods Configuration Menu', 'Save And Finish']:
+        elif choice == 'Save And Finish':
             finish = True
             return finish
 
@@ -137,7 +137,7 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
             return
         console.clear()
 
-        finish = modconfig_function_map(context, console, choice, mod_manager, mod_ordered, config_ordered,
+        finish = modconfig_function_map(context, console, choice[-1][0], mod_manager, mod_ordered, config_ordered,
                                         module_ordered)
         if finish:
             break

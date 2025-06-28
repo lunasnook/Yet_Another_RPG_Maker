@@ -24,11 +24,11 @@ create_gameplay_menu = {
 
 
 def output_function_map(context: tcod.context.new_terminal, console: tcod.console.Console, choice: list, output: dict, window: UI.tcod_window) -> dict:
-    if choice == ["Create Gameplay Menu", "Name The Genre To Be Created"]:
+    if choice[-1][0] == "Name The Genre To Be Created":
         thisin = UI.ntcod_input(17, 25, 17, 25, output["genre_name"],
                                        "name of game genre [A-Z,a-z,0-9,' ']", False)
         output["genre_name"] = window.pop_frame(thisin, context, console)
-    elif choice == ["Create Gameplay Menu", 'Continue To Mods']:
+    elif choice[-1][0] == 'Continue To Mods':
         output["continue"] = True
     return output
 
