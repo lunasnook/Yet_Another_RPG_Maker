@@ -1,0 +1,17 @@
+{
+  "id": "continent",
+  "Module": "Map_Feature_Extraction",
+  "Require": ["elevation", "biomes"],
+  "feature": "continent",
+  "elevation": false,
+  "percentile_of_elevation" : 0.01,
+  "biome": true,
+  "feature_index": 14,
+  "index_invert": true,
+  "names": [
+    "Untitled"
+  ],
+  "show_on_map": false,
+  "icon_on_map": 0,
+  "icon_color": [0,0,0]
+}

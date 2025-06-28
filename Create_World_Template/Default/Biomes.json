@@ -1,0 +1,5 @@
+{
+  "id": "biomes",
+  "Module": "Biomes",
+  "Require": ["temperature", "moisture", "elevation"]
+}

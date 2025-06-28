@@ -1,0 +1,6 @@
+{
+  "id": "elevation",
+  "Module": "Elevation",
+  "Require": ["raw_elevation"],
+  "elevation_above_ocean": 5000
+}

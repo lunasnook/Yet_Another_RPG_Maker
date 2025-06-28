@@ -1,0 +1,9 @@
+{
+  "id": "trails",
+  "Module": "Trails",
+  "Require": ["settlements"],
+  "icon_color": [199, 184, 163],
+  "elevation_id": "elevation",
+  "biome_id": "biomes",
+  "settlements_id": "settlements"
+}

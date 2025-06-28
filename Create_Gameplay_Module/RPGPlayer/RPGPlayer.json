@@ -1,0 +1,7 @@
+{
+  "id": "rpgplayer",
+  "Module": "RPGPlayer",
+  "Require": [],
+  "default_name": "PLAYER",
+  "icon": "☺",
+}

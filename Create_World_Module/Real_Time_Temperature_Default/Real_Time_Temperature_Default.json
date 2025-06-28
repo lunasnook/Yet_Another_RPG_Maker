@@ -1,0 +1,8 @@
+{
+  "id": "real_time_temp",
+  "Module": "Real_Time_Temperature_Default",
+  "Require": ["season_phase", "day_night_circle", "temperature"],
+  "summer_inc" : 5,
+  "winter_dec" : 30,
+  "sunlight_multi" : 10
+}

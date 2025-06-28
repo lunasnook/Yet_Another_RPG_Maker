@@ -1,0 +1,10 @@
+{
+  "id": "timeline",
+  "Module": "Timeline",
+  "Require": [],
+  "setting": {
+    "DAY" : 100,
+    "MONTH" : 30,
+    "YEAR" : 12
+  }
+}

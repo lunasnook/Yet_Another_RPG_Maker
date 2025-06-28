@@ -1,0 +1,11 @@
+{
+  "id": "",
+  "Module": "Phases",
+  "Require": ["timeline"],
+  "name": "",
+  "circle_level_index" : 1,
+  "names_of_phases" : [
+    ""
+  ],
+  "reverse_direction" : false
+}

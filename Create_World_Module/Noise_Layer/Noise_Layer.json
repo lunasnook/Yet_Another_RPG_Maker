@@ -1,0 +1,8 @@
+{
+  "id": "raw_elevation",
+  "Module": "Noise_Layer",
+  "Require": [],
+  "layers" : {},
+  "power" : 6,
+  "resize" : true,
+}

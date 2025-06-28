@@ -1,0 +1,18 @@
+{
+  "id": "moon_phase",
+  "Module": "Phases",
+  "Require": ["timeline"],
+  "name": "moon",
+  "circle_level_index" : 1,
+  "names_of_phases" : [
+    "NEW MOON",
+    "WAXING CRESCENT MOON",
+    "FIRST QUARTER MOON",
+    "WAXING GIBBOUS MOON",
+    "FULL MOON",
+    "WANING GIBBOUS MOON",
+    "THIRD QUARTER MOON",
+    "WANING CRESCENT MOON"
+  ],
+  "reverse_direction" : false
+}

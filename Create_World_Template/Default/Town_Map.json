@@ -1,0 +1,16 @@
+{
+  "id": "town_map",
+  "Module": "Town_Map",
+  "Require": [],
+  "height": 100,
+  "width": 100,
+  "layers" : {
+    "0" : [
+      1,
+      0.1
+    ]
+  },
+  "power" : 1,
+  "resize" : true,
+  "threshold": 0.5
+}

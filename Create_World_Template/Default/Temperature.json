@@ -1,0 +1,10 @@
+{
+  "id": "temperature",
+  "Module": "Temperature",
+  "Require": ["elevation"],
+  "ocean_level_temp": 24,
+  "temp_decline_per_1000": 6,
+  "pole_equator" : true,
+  "pole_percentage" : 0.25,
+  "equator_percentage" : 0.25
+}

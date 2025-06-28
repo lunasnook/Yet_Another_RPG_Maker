@@ -1,0 +1,13 @@
+{
+  "id": "demographics",
+  "Module": "Demographics",
+  "Require": [],
+  "age in 10": [10, 35, 60, 75, 90, 95, 97, 98, 99, 100],
+  "gender": {
+    "Male": 50,
+    "Female": 100
+  },
+  "name_id": "name",
+  "age_id": "age",
+  "gender_id": "gender"
+}

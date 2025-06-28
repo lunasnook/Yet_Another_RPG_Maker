@@ -1,0 +1,14 @@
+{
+  "id": "season_phase",
+  "Module": "Phases",
+  "Require": ["timeline"],
+  "name": "season",
+  "circle_level_index" : 2,
+  "names_of_phases" : [
+    "SPRING",
+    "SUMMER",
+    "FALL",
+    "WINTER"
+  ],
+  "reverse_direction" : false
+}

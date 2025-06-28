@@ -1,0 +1,18 @@
+{
+  "id": "day_night_circle",
+  "Module": "Day_Night_Circle",
+  "Require": ["timeline"],
+  "circle_level_index": 0,
+  "name_of_value": "sun_light",
+  "reverse_direction" : false,
+  "min_value": 0,
+  "max_value" : 1,
+  "begin_rise" : 0,
+  "end_rise" : 0.125,
+  "begin_set" : 0.5,
+  "end_set" : 0.625,
+  "color_blend": false,
+  "color": [0, 0, 0],
+  "max_alpha" : 255,
+  "color_id" : "day_night"
+}

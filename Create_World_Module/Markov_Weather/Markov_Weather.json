@@ -1,0 +1,26 @@
+{
+  "id": "weather_map",
+  "Module": "Markov_Weather",
+  "Require": ["timeline"],
+  "category": "weather",
+  "markov_factor": "moisture",
+  "circle_level_index": 0,
+  "changes_per_level": 3,
+  "types": [
+    "drought",
+    "harsh sun",
+    "sunny",
+    "partly cloudy",
+    "cloudy",
+    "overcast",
+    "rainy",
+    "thunderstorm",
+    "blizzard"
+  ],
+  "steady_state": [2, 3],
+  "normal_weight": 10,
+  "steady_state_weight": 90,
+  "default": 2,
+  "cloud_id": "cloud",
+  "show_cloud": true
+}

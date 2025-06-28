@@ -1,0 +1,20 @@
+{
+  "id": "backsimulation",
+  "Module": "BackSimulation",
+  "Require": ["settlements"],
+  "simulation_years": 100,
+  "begin_death": 75,
+  "death_probability": 0.05,
+  "begin_age_marry": 20,
+  "end_age_marry": 33,
+  "marry_probability": 0.2,
+  "end_age_birth": 40,
+  "birth_probability": 0.05,
+  "demo_name": "name",
+  "demo_age": "age",
+  "demo_gender": "gender",
+  "relation_id": "relation",
+  "spouse_id": "spouse",
+  "family_id_id": "family_id",
+  "settlements_id": "settlements"
+}
