@@ -694,40 +694,38 @@ class ntcod_menu(tcod_frame):
         if not self.adaptive:
             return
 
-        menu = self.thisin_menu
+        def paginate(menu, texty_span, title="►", level=0):
+            # 提取所有 int 键（保持顺序）
+            int_keys = sorted([k for k in menu if isinstance(k, int)])
+            sub_menu = {}
+            page_count = 0
 
-        # 提取 int 类型键并排序
-        int_keys = sorted([k for k in menu if isinstance(k, int)])
+            while True:
+                layout, _ = self._get_layout_from_menu(menu)
+                max_rows = texty_span // 2
+                if len(layout) <= max_rows or not int_keys:
+                    break
 
-        # 尝试逐步把最后的 int 项移入 ►
-        while True:
-            layout, _ = self.get_adaptive_layout()
-            is_single_column = all(len(row) == 1 for row in layout)
-            max_rows = self.texty_span // (2 if is_single_column else 1)
+                # 超出行数限制，分出新页
+                last_idx = int_keys.pop()
+                overflow_item = menu.pop(last_idx)
 
-            if len(layout) <= max_rows:
-                break
+                if title not in menu:
+                    menu[title] = {}
+                    menu[self.index] = title
+                    self.index += 1
 
-            if not int_keys:
-                break
+                sub_menu = menu[title]
+                next_index = max([k for k in sub_menu if isinstance(k, int)], default=-1) + 1
+                sub_menu[next_index] = overflow_item
 
-            # 移除最后一个
-            last_idx = int_keys.pop()
-            overflow_item = menu.pop(last_idx)
+                # 递归分页
+                paginate(sub_menu, texty_span, title=title, level=level+1)
 
-            if "►" not in menu:
-                menu["►"] = {}
-                menu[self.index] = "►"
-                self.index += 1
+        paginate(self.thisin_menu, self.texty_span)
 
-            sub = menu["►"]
-            new_i = max([k for k in sub if isinstance(k, int)], default=-1) + 1
-            sub[new_i] = overflow_item
-
-    def get_adaptive_layout(self):
-        menu = self.this_menu[-1]
+    def _get_layout_from_menu(self, menu):
         items = []
-
         for i in menu:
             if isinstance(i, int):
                 label = menu[i][0] if isinstance(menu[i], list) else menu[i]
@@ -757,6 +755,12 @@ class ntcod_menu(tcod_frame):
         col_widths = [max(len(l[1]) for l in items)]
         layout = [[item] for item in items]
         return layout, col_widths
+
+    # 替换 get_adaptive_layout 使用分页后的菜单获取布局
+    def get_adaptive_layout(self):
+        menu = self.this_menu[-1]
+        return self._get_layout_from_menu(menu)
+
 
     def set_direct_menu(self, new_menu):
         self.clear()
