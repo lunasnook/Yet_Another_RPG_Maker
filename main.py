@@ -7,7 +7,7 @@ import random
 main_menu = {
     0: "About",
     1: "Continue",
-    "Create": {
+    2: {
         "title": "Create",
         0: "Create Experience",
         1: "Create World",
@@ -18,7 +18,7 @@ main_menu = {
     },
     3: "Share",
     4: "Play",
-    "Setting": {
+    5: {
         "title": "Setting",
         0: "surprise!",
         1: "Setting",
@@ -72,7 +72,7 @@ def main() -> None:
     ) as context:
         root_console = tcod.console.Console(width=screen_width, height=screen_height)
         background = UI.ntcod_textout(0, 0, 50, 75, "", False, "", draw_frame=False)
-        menu = UI.ntcod_menu(17, 20, 17, 35, draw_frame=False, title="Main Menu", adaptive=True)
+        menu = UI.ntcod_menu(17, 20, 17, 35, draw_frame=True, title="Main Menu", adaptive=True)
         menu.set_direct_menu(main_menu)
         window = UI.tcod_window(background, menu)
         window.set_focus(1)

@@ -4,6 +4,9 @@ import time
 import numpy as np
 import colorsys
 import random
+from itertools import chain
+from typing import List, Any
+
 
 
 def color_rotation_calculator(
@@ -293,7 +296,11 @@ class tcod_window:
                     last_choice = frame_obj.last_choice
                     choice = frame_obj.choice
 
+                    if frame_obj.get_adaptive_layout() == "skip":
+                        continue
                     layout, col_widths = frame_obj.get_adaptive_layout()
+                    if layout == []:
+                        continue
 
                     # 映射：menu_idx -> (row, col)
                     pos_map = {menu_idx: (r, c) for r, row in enumerate(layout) for c, (menu_idx, _) in
@@ -351,19 +358,25 @@ class tcod_window:
                         test = False
                         current_key = frame_obj.choice
 
-                        if isinstance(this_menu[-1][current_key], list):
-                            if this_menu[-1][current_key][0] in this_menu[-1].keys():
-                                test = True
+                        if current_key not in this_menu[-1].keys():
+                            test = True
+                            current_key = 999999999
                         else:
-                            if this_menu[-1][current_key] in this_menu[-1].keys():
+                            if isinstance(this_menu[-1][current_key], list):
+                                if this_menu[-1][current_key][0] in this_menu[-1].keys():
+                                    test = True
+                            elif isinstance(this_menu[-1][current_key], dict):
                                 test = True
+                            else:
+                                if this_menu[-1][current_key] in this_menu[-1].keys():
+                                    test = True
 
                         if test:
                             # ✅ 进入子菜单前记住当前 choice
                             curser[len(position) - 1] = [position[-1], current_key]
 
-                            position.append(this_menu[-1][current_key])
-                            this_menu.append(this_menu[-1][this_menu[-1][current_key]])
+                            position.append(this_menu[-1][current_key]["title"])
+                            this_menu.append(this_menu[-1][current_key])
 
                             # ✅ 从 curser 恢复子菜单的 choice（若存在）
                             new_key = position[-1]
@@ -682,55 +695,108 @@ class ntcod_menu(tcod_frame):
 
         self.choice = 0
         self.position = [self.menu["title"]]
-        self.this_menu = [self.menu]
         self.curser = [[self.menu["title"], 0]]
         self.last_choice = -1
 
         self.master_menu = self.menu
         self.thisin_menu = self.menu
+        self.this_menu = [self.thisin_menu]
         self.index = 0
+        self.all_item = {"title": title}
+        self.num_col = 0
+        self.all_width = True
+        self.col_widths = None
+        self.full_layout = None
+        self.max_rows = self.texty_span // 2
+
+    def reshape_to_cols(self, data: List[List[Any]], cols: int) -> List[List[Any]]:
+        flat = list(chain.from_iterable(data))
+        new_data = [flat[i:i + cols] for i in range(0, len(flat), cols)]
+        return new_data
+
 
     def finalize_adaptive_menu(self):
-        if not self.adaptive:
-            return
-
+        self.all_width = True
         def paginate(menu, texty_span, title="►", level=0):
             # 提取所有 int 键（保持顺序）
             int_keys = sorted([k for k in menu if isinstance(k, int)])
             sub_menu = {}
             page_count = 0
 
-            while True:
-                layout, _ = self._get_layout_from_menu(menu)
-                max_rows = texty_span // 2
-                if len(layout) <= max_rows or not int_keys:
-                    break
+            layout, twdith = self._get_layout_from_menu(menu)
+            if self.all_width:
+                self.num_col = len(layout[0])
+                self.col_widths = twdith
+                self.full_layout = layout
 
-                # 超出行数限制，分出新页
-                last_idx = int_keys.pop()
-                overflow_item = menu.pop(last_idx)
 
-                if title not in menu:
-                    menu[title] = {}
-                    menu[self.index] = title
-                    self.index += 1
+            layout = self.reshape_to_cols(layout, self.num_col)
 
-                sub_menu = menu[title]
-                next_index = max([k for k in sub_menu if isinstance(k, int)], default=-1) + 1
-                sub_menu[next_index] = overflow_item
+            if len(layout) <= self.max_rows or not int_keys:
+                return "okay"
 
-                # 递归分页
-                paginate(sub_menu, texty_span, title=title, level=level+1)
+            all_overflowed = layout[self.max_rows:]
 
+            # 超出行数限制，分出新页
+            this_index = 999999999
+            menu[this_index] = {"title": title}
+            all_mod_ids = []
+            data = []
+            if not isinstance(menu[self.max_rows * len(layout[0]) - 1], dict):
+                all_mod_ids.append(menu[self.max_rows * len(layout[0]) - 1][1])
+                data.append(menu[self.max_rows * len(layout[0]) - 1][0])
+            else:
+                all_mod_ids.append(None)
+                data.append(menu[self.max_rows * len(layout[0]) - 1])
+            for i in menu:
+                if i != "title":
+                    if not isinstance(menu[i], dict):
+                        all_mod_ids.append(menu[i][1])
+                        data.append(menu[i][0])
+                    else:
+                        all_mod_ids.append(None)
+                        data.append(menu[i])
+            num_deleted = self.max_rows * len(layout[0])
+            all_mod_ids = all_mod_ids[num_deleted:]
+            data = data[num_deleted:]
+
+            sub_menu = menu[this_index]
+            this_index = 0
+            leftover = layout[self.max_rows-1][-1]
+            if isinstance(data[this_index], dict):
+                sub_menu[this_index] = data
+            else:
+                sub_menu[this_index] = [data[this_index], all_mod_ids[this_index]]
+            this_index = this_index + 1
+            del menu[leftover[0]]
+            for overflow_line in all_overflowed:
+                for overflow_item in overflow_line:
+                    if isinstance(data[this_index], dict):
+                        sub_menu[this_index] = data
+                    else:
+                        sub_menu[this_index] = [data[this_index], all_mod_ids[this_index]]
+                    this_index = this_index + 1
+                    del menu[overflow_item[0]]
+            # 递归分页
+            self.all_width = False
+            result = paginate(sub_menu, texty_span, title=title, level=level+1)
+            if result == "okay":
+                return "okay"
+
+        self.thisin_menu = copy.deepcopy(self.menu)
         paginate(self.thisin_menu, self.texty_span)
+        test = 1
 
     def _get_layout_from_menu(self, menu):
         items = []
+        index = 0
         for i in menu:
-            if isinstance(i, int):
-                label = menu[i][0] if isinstance(menu[i], list) else menu[i]
-                label_str = f"[{label}]"
-                items.append((i, label_str))
+            if i != "title":
+                if isinstance(menu[i], dict):
+                    items.append((index, menu[i]["title"]))
+                else:
+                    items.append((index, menu[i][0]))
+                index = index + 1
 
         if not items:
             return [], []
@@ -754,12 +820,37 @@ class ntcod_menu(tcod_frame):
 
         col_widths = [max(len(l[1]) for l in items)]
         layout = [[item] for item in items]
+
         return layout, col_widths
 
     # 替换 get_adaptive_layout 使用分页后的菜单获取布局
     def get_adaptive_layout(self):
-        menu = self.this_menu[-1]
-        return self._get_layout_from_menu(menu)
+        level = 0
+        focus = self.thisin_menu
+        for i in range(len(self.this_menu)-1):
+            for title in focus:
+                if isinstance(focus[title], dict):
+                    if (focus[title]["title"] == self.this_menu[i+1]["title"]) and (focus[title]["title"] == "►"):
+                        level = level + 1
+                    elif focus[title]["title"] == self.this_menu[i+1]["title"]:
+                        focus = focus[title]
+                        return self._get_layout_from_menu(focus)
+
+        if self.full_layout is None:
+            return "skip"
+        else:
+            point = self.thisin_menu
+            for i in range(level):
+                point = point[999999999]
+
+            layout = []
+            for item in point:
+                if item != "title":
+                    if not isinstance(point[item], dict):
+                        layout.append([(item, point[item][0])])
+                    else:
+                        layout.append([(item, point[item]["title"])])
+            return [self.reshape_to_cols(layout, self.num_col), self.col_widths]
 
 
     def set_direct_menu(self, new_menu):
@@ -768,20 +859,19 @@ class ntcod_menu(tcod_frame):
             self.add_menu_item(new_menu[item], "system")
 
     def add_menu_item(self, item, from_mod):
-        if self.adaptive:
-            if not hasattr(self, "_cur_line_width"):
-                self._cur_line_width = 0
-            if not hasattr(self, "_max_line_width"):
-                self._max_line_width = self.text_span
-            if not hasattr(self, "_spacing"):
-                self._spacing = 2
+        if not hasattr(self, "_cur_line_width"):
+            self._cur_line_width = 0
+        if not hasattr(self, "_max_line_width"):
+            self._max_line_width = self.text_span
+        if not hasattr(self, "_spacing"):
+            self._spacing = 2
 
-            if isinstance(item, dict):
-                label_str = f"[{item['title']}]"
-            else:
-                label_str = f"[{item[0]}]"
+        if isinstance(item, dict):
+            label_str = f"[{item['title']}]"
+        else:
+            label_str = f"[{item[0]}]"
 
-            next_item_width = len(label_str) + self._spacing
+        next_item_width = len(label_str) + self._spacing
 
         if isinstance(item, dict):
             def patch_numeric_keys(d: dict, tag: str = "mytext") -> None:
@@ -792,18 +882,19 @@ class ntcod_menu(tcod_frame):
                         patch_numeric_keys(v, tag)
 
             dict_title = item["title"]
-            self.thisin_menu[self.index] = dict_title
             patch_numeric_keys(item, from_mod)
-            self.thisin_menu[dict_title] = item
+            self.menu[self.index] = item
             label_length = len(f"[{dict_title}]")
         else:
-            self.thisin_menu[self.index] = [item, from_mod]
+            self.menu[self.index] = [item, from_mod]
             label_length = len(f"[{item[0]}]")
 
         if self.adaptive:
             self._cur_line_width += label_length + self._spacing
 
         self.index += 1
+        self.finalize_adaptive_menu()
+        self.this_menu[0] = self.thisin_menu
 
     def clear(self):
         for i in list(self.menu.keys()):
@@ -812,7 +903,7 @@ class ntcod_menu(tcod_frame):
         self.index = 0
 
     def display(self, console):
-        self.finalize_adaptive_menu()
+        # self.finalize_adaptive_menu()
         print_line = 0
         length = 0
         for i in self.position:
@@ -832,7 +923,11 @@ class ntcod_menu(tcod_frame):
         elif self.position[-1] in self.curser[len(self.position) - 1]:
             self.choice = self.curser[len(self.position) - 1][1]
 
+        if self.get_adaptive_layout() == "skip":
+            return
         layout, col_widths = self.get_adaptive_layout()
+        if layout == []:
+            return
         start_y = self.start_print_y + 1
         spacing = 2
 
