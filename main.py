@@ -72,7 +72,7 @@ def main() -> None:
     ) as context:
         root_console = tcod.console.Console(width=screen_width, height=screen_height)
         background = UI.ntcod_textout(0, 0, 50, 75, "", False, "", draw_frame=False)
-        menu = UI.ntcod_menu(17, 20, 17, 35, draw_frame=True, title="Main Menu", adaptive=True)
+        menu = UI.ntcod_menu(17, 20, 17, 35, draw_frame=False, title="Main Menu", adaptive=True)
         menu.set_direct_menu(main_menu)
         window = UI.tcod_window(background, menu)
         window.set_focus(1)
