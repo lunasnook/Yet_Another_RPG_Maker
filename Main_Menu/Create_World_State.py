@@ -80,12 +80,12 @@ create_world_menu = {
 
 def output_function_map(context: tcod.context.new_terminal, console: tcod.console.Console, choice: list, output: dict, window: UI.tcod_window) -> dict:
     if choice[-1][0] == 'Name The World To Be Created':
-        thisin = UI.ntcod_input(17, 25, 17, 25, output["world_name"], "world name[A-Z,a-z,0-9,' ']", False)
+        thisin = UI.ntcod_input(28, 42, 10, 15,  output["world_name"], "world name[A-Z,a-z,0-9,' ']", False)
         output["world_name"] = window.pop_frame(thisin, context, console)
     elif choice[-1][0] == 'Set The World Dimensions':
-        thisin = UI.ntcod_input(17, 25, 17, 25, output["height"], "height[0-9]", True)
+        thisin = UI.ntcod_input(28, 42, 10, 15,  output["height"], "height[0-9]", True)
         output["height"] = window.pop_frame(thisin, context, console)
-        thisin = UI.ntcod_input(17, 25, 17, 25, output["width"], "width[0-9]", True)
+        thisin = UI.ntcod_input(28, 42, 10, 15,  output["width"], "width[0-9]", True)
         output["width"] = window.pop_frame(thisin, context, console)
     elif choice[-1][0] == 'Continue To Mods':
         output["continue"] = True
@@ -103,11 +103,10 @@ deoutput = {
 
 def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> None:
     # configure menu loop
-    background = UI.ntcod_textout(0, 0, 50, 75, "", False)
-    menu = UI.ntcod_menu(17, 20, 17, 35, title="Create World Menu")
+    background = UI.BACKGROUND
+    menu = UI.ntcod_menu(22, 33, 22, 33, title="Create World Menu")
     menu.set_direct_menu(create_world_menu)
     window = UI.tcod_window(background, menu)
-    window.set_focus(1)
     while True:
         console.clear()
 
@@ -132,6 +131,6 @@ def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> N
     # weather 0.2684 sec
 
     world = World(world_name, local_map, mods_load)
-    thisin = UI.ntcod_input(17, 25, 17, 25, "world", "input name of world file", False)
+    thisin = UI.ntcod_input(28, 42, 10, 15,  "world", "input name of world file", False)
     world_file_name = window.pop_frame(thisin, context, console)
     IO.save_object_to_file("Play/", world_file_name, "world", world, False)

@@ -73,8 +73,8 @@ class BackSimulation:
         settlement_mod = kwargs["mods"][self.require]
         self.settlement_name = settlement_mod.get_settlement_name()
 
-        progress = UI.ntcod_textout(17, 25, 17, 25, "simulation progress", False)
-        kwargs["window"].add_frame(progress, "simulation progress")
+        progress = UI.ntcod_textout(22, 33, 22, 33, "simulation progress", False)
+        kwargs["window"].add_frame(progress)
 
         for i in range(self.simulate_years):
             progress.clear()
@@ -195,7 +195,7 @@ class BackSimulation:
             # Age increment
             peoples.set_attribute(self.age_id, (np.array(peoples.get_attribute(self.age_id)) + 1).tolist())
 
-        kwargs["window"].remove_frame("simulation progress")
+        kwargs["window"].remove_frame()
         kwargs["window"].display_all(kwargs["context"], kwargs["console"])
 
         self.simulated = True

@@ -83,11 +83,10 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
             while True:
                 console.clear()
 
-                background = UI.ntcod_textout(0, 0, 50, 75, "", False)
-                this_menu = UI.ntcod_menu(17, 20, 17, 35, title="Available Templates")
+                background = UI.BACKGROUND
+                this_menu = UI.ntcod_menu(22, 33, 22, 33, title="Available Templates")
                 this_menu.set_direct_menu(templates_menu)
                 this_window = UI.tcod_window(background, this_menu)
-                this_window.set_focus(1)
                 choice = this_window.display(context, console)
 
                 if choice == "last_page":
@@ -126,11 +125,10 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
     while True:
         console.clear()
 
-        background = UI.ntcod_textout(0, 0, 50, 75, "", False)
-        menu = UI.ntcod_menu(17, 20, 17, 35, title="Mods Configuration Menu")
+        background = UI.BACKGROUND
+        menu = UI.ntcod_menu(22, 33, 22, 33, title="Mods Configuration Menu")
         menu.set_direct_menu(mod_configuration_menu)
         window = UI.tcod_window(background, menu)
-        window.set_focus(1)
         choice = window.display(context, console)
 
         if choice == "last_page":

@@ -3,6 +3,7 @@ import tcod
 import time
 from Library import UI
 import random
+import tcod.event
 
 main_menu = {
     0: "About",
@@ -20,9 +21,12 @@ main_menu = {
     4: "Play",
     5: {
         "title": "Setting",
-        0: "surprise!",
-        1: "Setting",
-        2: "Developer",
+        0: "Default Theme",
+        1: "Light Theme",
+        2: "Dark Theme",
+        3: "surprise!",
+        4: "Setting",
+        5: "Developer",
     },
     6: "Quit"
 }
@@ -39,6 +43,21 @@ def function_map(context: tcod.context.new_terminal, root_console: tcod.console.
         Create_Gameplay_State.main(context, root_console)
     elif choice[-1][0] == 'Play':
         Play.play(context, root_console)
+    elif choice[-1][0] == "Default Theme":
+        UI.BG = UI.BGI
+        UI.FGN = UI.FGNI
+        UI.FGF = UI.FGFI
+        UI.COLOR_TEXT = [UI.FGF]
+    elif choice[-1][0] == "Light Theme":
+        UI.BG = UI.BGL
+        UI.FGN = UI.FGNL
+        UI.FGF = UI.FGFL
+        UI.COLOR_TEXT = [UI.FGF]
+    elif choice[-1][0] == "Dark Theme":
+        UI.BG = UI.BGD
+        UI.FGN = UI.FGND
+        UI.FGF = UI.FGFD
+        UI.COLOR_TEXT = [UI.FGF]
     elif choice[-1][0] == 'surprise!':
         UI.BG = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         system_theme = UI.color_rotation_calculator(bg_rgb=UI.BG,
@@ -54,28 +73,36 @@ def function_map(context: tcod.context.new_terminal, root_console: tcod.console.
     else:
         raise SystemExit()
 
-
+WIDTH = 99
+HEIGHT = 66
+ASPECT_RATIO = WIDTH / HEIGHT
 def main() -> None:
     # Settings
-    screen_width = 75
-    screen_height = 50
     title = "Yet Another RPG Maker"
     tileset = tcod.tileset.load_tilesheet("Default.png", 16, 16, tcod.tileset.CHARMAP_CP437)
     vsync = True
 
     with tcod.context.new_terminal(
-            screen_width,
-            screen_height,
+            WIDTH,
+            HEIGHT,
             title=title,
             tileset=tileset,
             vsync=vsync,
     ) as context:
-        root_console = tcod.console.Console(width=screen_width, height=screen_height)
-        background = UI.ntcod_textout(0, 0, 50, 75, "", False, "", draw_frame=False)
-        menu = UI.ntcod_menu(17, 20, 17, 35, draw_frame=False, title="Main Menu", adaptive=True)
+        root_console = tcod.console.Console(width=WIDTH, height=HEIGHT)
+        background = UI.BACKGROUND
+        menu = UI.ntcod_menu(22, 33, 22, 33, draw_frame=False, title="Main Menu", force_num_col=1)
         menu.set_direct_menu(main_menu)
         window = UI.tcod_window(background, menu)
-        window.set_focus(1)
+
+        # 🔐 Lock the aspect ratio using SDL
+        window_p = context.sdl_window_p  # Get SDL_Window*
+        tcod.lib.SDL_SetWindowResizable(window_p, True)
+        tcod.lib.SDL_SetWindowMinimumSize(window_p, WIDTH * 5, HEIGHT * 5)
+        tcod.lib.SDL_SetWindowMaximumSize(window_p, WIDTH * 200, HEIGHT * 200)
+        tcod.lib.SDL_SetWindowAspectRatio(window_p, ASPECT_RATIO, ASPECT_RATIO)
+
+
         while True:
             root_console.clear()
             choice = window.display(context, root_console)

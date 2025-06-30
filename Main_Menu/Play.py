@@ -58,13 +58,12 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
                     deepest_level = window.get(i)[0].get_player_level()
         mods["rpgplayer"] = deepest
     else:
-        maintile = UI.ntcod_tile(0, 0, 50, 50)
+        maintile = UI.ntcod_tile(0, 0, 66, 99)
         local_map.set_default_screen_to_tile(maintile)
 
-        mainout = UI.ntcod_textout(0, 50, 30, 25, initial_text, smart_page=True)
-        mainmenu = UI.ntcod_menu(30, 50, 20, 25, title="Choose Action", adaptive=True)
+        mainout = UI.ntcod_textout(0, 50, 30, 25, initial_text, smart_page=True, show_page=True)
+        mainmenu = UI.ntcod_menu(60, 8, 8, 83, title="Select an option")
         window = UI.tcod_window(maintile, mainout, mainmenu)
-    window.set_focus(2)
     action_time, elapse_time = main_update(1, local_map, peoples, mods, context, console, window)
     while True:
         console.clear()
@@ -76,17 +75,15 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
             if textoutput is not None:
                 content = textoutput[1]
                 page = textoutput[0]
-                if isinstance(content, list):
-                    first = True
-                    for this_string in content:
-                        if first:
-                            mainout.add_text("----    ---♦---    ----" + this_string, page, mod)
-                            first = False
-                        else:
-                            mainout.add_text(this_string, page, mod)
+                if isinstance(content, str):
+                    mainout.add_text(content, page, mod)
                 else:
-                    mainout.add_text("----    ---♦---    ----" + content, page, mod)
-        mainout.add_text("----    ---♦---    ----" + action_time + ' in-game time took ' + elapse_time.split(".")[0] + "." + elapse_time.split(".")[1][0:5] + ' seconds', "overview", "system")
+                    for this_string in content:
+                        if isinstance(this_string, str):
+                            mainout.add_text(this_string, page, mod)
+                        else:
+                            mainout.add_text(this_string[0], page, mod, spacing=this_string[1], middle=this_string[2])
+        mainout.add_text(action_time + ' in-game time took ' + elapse_time.split(".")[0] + "." + elapse_time.split(".")[1][0:5] + ' seconds', "overview", "system")
         mainmenu.add_menu_item("next page", "system")
         mainmenu.add_menu_item("go to page", "system")
         mainmenu.add_menu_item("pin unpin section", "system")
@@ -106,7 +103,7 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
             if choice[-1][0] == "next page":
                 window.get(1)[0].next_page()
             elif choice[-1][0] == "go to page":
-                thisin = UI.ntcod_input(17, 25, 17, 25, "overview",
+                thisin = UI.ntcod_input(28, 42, 10, 15,  "overview",
                                                "go to page [A-Z,a-z,0-9,' ']", False)
                 whichpage = window.pop_frame(thisin, context, console)
                 if whichpage in list(window.get(1)[0].get_keys()):
@@ -118,11 +115,11 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
                 for page in mainout.get_smart_pages().keys():
                     this_page = mainout.get_smart_pages()[page]
                     for this_key in this_page.keys():
-                        this_menu[i] = this_page[this_key]["content"][0][23:]
+                        this_menu[i] = this_page[this_key]["content"][0][0]
                         i = i + 1
-                        index_info[this_page[this_key]["content"][0][23:]] = [page, this_page[this_key]["modid"]]
+                        index_info[this_page[this_key]["content"][0][0]] = [page, this_page[this_key]["modid"]]
                         # [page, this_page[this_key]["content"]]
-                this_menu_ui = UI.ntcod_menu(10, 25, 30, 25, title="Choose Section")
+                this_menu_ui = UI.ntcod_menu(22, 33, 22, 33, title="Choose Section")
                 this_menu_ui.set_direct_menu(this_menu)
                 whichinfo = window.pop_frame(this_menu_ui, context, console)
                 if whichinfo != "last_page":
@@ -134,11 +131,11 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
                 for page in mainout.get_smart_pages().keys():
                     this_page = mainout.get_smart_pages()[page]
                     for this_key in this_page.keys():
-                        this_menu[i] = this_page[this_key]["content"][0][23:]
+                        this_menu[i] = this_page[this_key]["content"][0][0]
                         i = i + 1
-                        index_info[this_page[this_key]["content"][0][23:]] = [page, this_page[this_key]["modid"]]
+                        index_info[this_page[this_key]["content"][0][0]] = [page, this_page[this_key]["modid"]]
                         # [page, this_page[this_key]["content"]]
-                this_menu_ui = UI.ntcod_menu(10, 25, 30, 25, title="Choose Section")
+                this_menu_ui = UI.ntcod_menu(22, 33, 22, 33, title="Choose Section")
                 this_menu_ui.set_direct_menu(this_menu)
                 whichinfo = window.pop_frame(this_menu_ui, context, console)
                 if whichinfo != "last_page":

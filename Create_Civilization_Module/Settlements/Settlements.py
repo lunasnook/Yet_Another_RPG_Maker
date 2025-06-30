@@ -90,18 +90,18 @@ class Settlements:
                     else:
                         defaultscreen = []
                         for defualt_i in range(self.height):
-                            defaultscreen.append(BG * self.width)
+                            defaultscreen.append([(32, (76, 76, 76), BG)] * self.width)
                         submap = mapclass.MapData(self.height, self.width)
                         submap.set_default_screen(defaultscreen)
                         self.maps.set_submap(j, k, self.settlement_name[i], self.id, submap)
             self.initialized = True
-        elif ((self.town_map_id in kwargs["mods"].keys()) and (self.simulation_id in kwargs["mods"].keys())) and kwargs["mods"][self.simulation_id].get_simulated():
-                for i in range(self.max_num_settlements):
-                    j = self.positions[i][0]
-                    k = self.positions[i][1]
-                    this_families = kwargs["mods"][self.simulation_id].get_families()
-                    submap = kwargs["mods"][self.town_map_id].generate_town_map(this_families, i, kwargs["mods"][self.noise_id])
-                    self.maps.set_submap(j, k, self.settlement_name[i], self.id, submap)
+            # elif ((self.town_map_id in kwargs["mods"].keys()) and (self.simulation_id in kwargs["mods"].keys())) and kwargs["mods"][self.simulation_id].get_simulated():
+            #         for i in range(self.sum(self.statistics > 0)):
+            #             j = self.positions[i][0]
+            #             k = self.positions[i][1]
+            #             this_families = kwargs["mods"][self.simulation_id].get_families()
+            #             submap = kwargs["mods"][self.town_map_id].generate_town_map(this_families, i, kwargs["mods"][self.noise_id])
+            #            self.maps.set_submap(j, k, self.settlement_name[i], self.id, submap)
         return
 
     def get_statistics(self):

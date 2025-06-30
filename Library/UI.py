@@ -8,7 +8,6 @@ from itertools import chain
 from typing import List, Any
 
 
-
 def color_rotation_calculator(
     bg_rgb,
     strategy='auto',
@@ -161,9 +160,18 @@ def color_rotation_calculator(
     if len(result_colors) < 2:
         return [(192, 192, 192), (43, 43, 43)]
     return reorder_colors_maximize_difference(result_colors)
-# BG = (43, 43, 43)
-# BG = (192, 192, 192)
-BG = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+BG = (141, 141, 141)
+FGN = (76, 76, 76)
+FGF = (0, 0, 0)
+BGI = (141, 141, 141)
+FGNI = (76, 76, 76)
+FGFI = (0, 0, 0)
+BGL = (195, 195, 195)
+FGNL = (94, 94, 94)
+FGFL = (0, 0, 0)
+BGD = (57, 57, 57)
+FGND = (128, 128, 128)
+FGFD = (220, 220, 220)
 # ====================
 PREFERENCE1 = 'analogous'
 PREFERENCE2 = 'opposite'
@@ -171,10 +179,7 @@ PREFERENCE3 = 'complementary'
 # ====================
 NUM_COLOR = 8
 # ====================
-system_theme = color_rotation_calculator(bg_rgb=BG, strategy=random.choice([PREFERENCE1, PREFERENCE2, PREFERENCE3]), count=NUM_COLOR)
-FGN = system_theme[0]
-FGF = system_theme[1]
-COLOR_TEXT = color_rotation_calculator(bg_rgb=BG, strategy=random.choice([PREFERENCE1, PREFERENCE2, PREFERENCE3]), count=NUM_COLOR)
+COLOR_TEXT = [FGF]
 # ====================
 COLOR_PLAYER = (43, 43, 43)
 
@@ -217,11 +222,14 @@ class tcod_window:
     def __init__(self, *args):
         index = 0
         self.frames_in_window = {}
+        self.need_focus = []
         for frame in args:
             self.frames_in_window[index] = [frame, frame.__class__.__name__, "sys"] # list of frame by index
             index = index + 1
+            self.need_focus.append(False)
         self.number_of_frames = index
-        self.focus = 0
+        self.focus = index - 1
+        self.need_focus[-1] = True
 
 
     def get_num_frames(self):
@@ -241,17 +249,20 @@ class tcod_window:
                         return self.frames_in_window[i][0]
 
 
-    def add_frame(self, frame, frameid="sys"):
+    def add_frame(self, frame, frameid="sys", change_focus=True):
         self.frames_in_window[self.number_of_frames] = [frame, frame.__class__.__name__, frameid]
+        self.need_focus.append(change_focus)
         self.number_of_frames += 1
+        if change_focus:
+            self.focus = self.number_of_frames - 1
 
     def pop_frame(self, frame, context, console):
+        original_focus = self.focus
         self.add_frame(frame)
-        original_focus = self.get_focus()
-        self.set_focus(self.number_of_frames - 1)
+        self.foxus = self.number_of_frames - 1
         output = self.display(context, console)
-        self.set_focus(original_focus)
         self.remove_frame()
+        self.focus = original_focus
         return output
 
     def remove_frame(self, frameid="sys"):
@@ -262,15 +273,16 @@ class tcod_window:
                     self.frames_in_window[j] = self.frames_in_window[j+1]
                     j += 1
                 del self.frames_in_window[j]
+                del self.need_focus[i]
+                if i < self.focus:
+                    self.focus -= 1
+                elif i == self.focus:
+                    nonzero_indices = [i for i, x in enumerate(self.need_focus) if x != 0]
+                    self.focus = nonzero_indices[-1] if nonzero_indices else -1
                 self.number_of_frames -= 1
                 break
         return
 
-    def set_focus(self, focus_index):
-        self.focus = focus_index
-
-    def get_focus(self):
-        return self.focus
 
     def display_all(self, context, console):
         console.clear()
@@ -386,10 +398,22 @@ class tcod_window:
                             frame_obj.choice = curser[level_in][1]
                             break
                         else:
-                            return_position = copy.deepcopy(position)
-                            return_position.append(this_menu[-1][current_key])
+                            if isinstance(this_menu[-1][current_key], ntcod_menu):
+                                self.add_frame(this_menu[-1][current_key], "sub_menu")
+                                sepe_way = self.display(context, console)
+                                if sepe_way == "last_page":
+                                    continue
+                                return_position = copy.deepcopy(position)
+                                return_position.extend(sepe_way)
+
+                            else:
+                                return_position = copy.deepcopy(position)
+                                return_position.append(this_menu[-1][current_key])
                             return return_position
                     if (event_code == ["N", "x"]) | (event_code == ["S", "BACKSPACE"]):
+                        if self.frames_in_window[self.focus][0].get_parent_menu() is not None:
+                            self.remove_frame("sub_menu")
+                            continue
                         if len(this_menu) > 1:
                             position.pop()
                             this_menu.pop()
@@ -536,16 +560,27 @@ class ntcod_textout(tcod_frame):
                 result.append(item)
         self.hidden = result
 
-    def add_simple_text(self, text, key):
+    def add_simple_text(self, text, key, spacing=True, middle=False):
         if not (key in self.pages.keys()):
             self.pages[key] = []
-        self.pages[key].append(text)
+        if spacing:
+            if middle and (len(text)<(self.x_span-2)):
+                space_left = (self.x_span - 2 - len(text)) // 2
+                space_right = self.x_span - 2 - len(text) - space_left
+                self.pages[key].append(" " * (self.x_span - 2) + " " * space_left + text + " " * space_right)
+            else:
+                self.pages[key].append(" " * (self.x_span - 2) + text)
+        else:
+            if middle and (len(text)<(self.x_span-2)):
+                space_left = (self.x_span - 2 - len(text)) // 2
+                space_right = self.x_span - 2 - len(text) - space_left
+                self.pages[key].append(" " * space_left + text + " " * space_right)
+            else:
+                self.pages[key].append(text)
 
-    def add_text(self, text, key="overview", modid=None):
+    def add_text(self, text, key="overview", modid=None, spacing=True, middle=False):
         if not self.smart_page:
-            if not (key in self.pages.keys()):
-                self.pages[key] = []
-            self.pages[key].append(text)
+            self.add_simple_text(text, key, spacing, middle)
         else:
             if not (key in self.smart_pages.keys()):
                 self.smart_pages[key] = {}
@@ -560,7 +595,7 @@ class ntcod_textout(tcod_frame):
             if not modidexsist:
                 this_index = len(self.smart_pages[key])
                 self.smart_pages[key][this_index] = {"modid": modid, "content": [], "index": this_index}
-            self.smart_pages[key][this_index]["content"].append(text)
+            self.smart_pages[key][this_index]["content"].append([text, spacing, middle])
 
     def clear(self):
         self.pages = {self.initial_page: [self.initial_text]}
@@ -579,10 +614,10 @@ class ntcod_textout(tcod_frame):
                     if self.smart_pages[key][i]["modid"] == modid:
                         for line in self.smart_pages[key][i]["content"]:
                             if [key, modid] not in self.hidden:
-                                self.add_simple_text(line, key)
-                                self.add_simple_text(line, "pinned")
+                                self.add_simple_text(line[0], key, spacing=line[1], middle=line[2])
+                                self.add_simple_text(line[0], "pinned", spacing=line[1], middle=line[2])
                             else:
-                                self.add_simple_text(line, "hidden")
+                                self.add_simple_text(line[0], "hidden", spacing=line[1], middle=line[2])
             for key in list(self.smart_pages.keys()):
                 for i in self.smart_pages[key].keys():
                     if [key, self.smart_pages[key][i]["modid"]] in self.pinned:
@@ -591,9 +626,9 @@ class ntcod_textout(tcod_frame):
                         continue
                     for line in self.smart_pages[key][i]["content"]:
                         if [key, self.smart_pages[key][i]["modid"]] not in self.hidden:
-                            self.add_simple_text(line, key)
+                            self.add_simple_text(line[0], key, spacing=line[1], middle=line[2])
                         else:
-                            self.add_simple_text(line, "hidden")
+                            self.add_simple_text(line[0], "hidden", spacing=line[1], middle=line[2])
 
 
 
@@ -682,110 +717,51 @@ class ntcod_textout(tcod_frame):
 
     def get_smart_pages(self):
         return self.smart_pages
+BACKGROUND = ntcod_textout(-1, -1, 68, 101, "", False, "", draw_frame=True)
 
 
 class ntcod_menu(tcod_frame):
-    def __init__(self, start_y, start_x, y_span, x_span, draw_frame=True, title="Choose Action", adaptive=True):
+    def __init__(self, start_y, start_x, y_span, x_span, draw_frame=True, title="Choose Action", parent_menu=None, force_num_col=None):
         super().__init__(start_y, start_x, y_span, x_span, draw_frame=draw_frame)
+        self.parent_menu = parent_menu
         self.title = title
         self.menu = {"title": title}
-        self.text_span = x_span - 3
+        self.text_span = x_span - 4
         self.texty_span = y_span - 4
-        self.adaptive = adaptive
+        self.force_num_col = force_num_col
 
         self.choice = 0
-        self.position = [self.menu["title"]]
+        if parent_menu is not None:
+            self.position = [parent_menu + "/" + self.menu["title"]]
+        else:
+            self.position = [self.menu["title"]]
         self.curser = [[self.menu["title"], 0]]
         self.last_choice = -1
 
-        self.master_menu = self.menu
         self.thisin_menu = self.menu
         self.this_menu = [self.thisin_menu]
         self.index = 0
         self.all_item = {"title": title}
         self.num_col = 0
-        self.all_width = True
         self.col_widths = None
         self.full_layout = None
         self.max_rows = self.texty_span // 2
+        self.managed_layout = copy.deepcopy(self.full_layout)
 
-    def reshape_to_cols(self, data: List[List[Any]], cols: int) -> List[List[Any]]:
-        flat = list(chain.from_iterable(data))
-        new_data = [flat[i:i + cols] for i in range(0, len(flat), cols)]
-        return new_data
+    def get_title(self):
+        return self.title
 
+    def get_parent_menu(self):
+        return self.parent_menu
 
-    def finalize_adaptive_menu(self):
-        self.all_width = True
-        def paginate(menu, texty_span, title="►", level=0):
-            # 提取所有 int 键（保持顺序）
-            int_keys = sorted([k for k in menu if isinstance(k, int)])
-            sub_menu = {}
-            page_count = 0
+    def get_menu(self):
+        return self.menu
 
-            layout, twdith = self._get_layout_from_menu(menu)
-            if self.all_width:
-                self.num_col = len(layout[0])
-                self.col_widths = twdith
-                self.full_layout = layout
+    def get_choice(self):
+        return self.choice
 
-
-            layout = self.reshape_to_cols(layout, self.num_col)
-
-            if len(layout) <= self.max_rows or not int_keys:
-                return "okay"
-
-            all_overflowed = layout[self.max_rows:]
-
-            # 超出行数限制，分出新页
-            this_index = 999999999
-            menu[this_index] = {"title": title}
-            all_mod_ids = []
-            data = []
-            if not isinstance(menu[self.max_rows * len(layout[0]) - 1], dict):
-                all_mod_ids.append(menu[self.max_rows * len(layout[0]) - 1][1])
-                data.append(menu[self.max_rows * len(layout[0]) - 1][0])
-            else:
-                all_mod_ids.append(None)
-                data.append(menu[self.max_rows * len(layout[0]) - 1])
-            for i in menu:
-                if i != "title":
-                    if not isinstance(menu[i], dict):
-                        all_mod_ids.append(menu[i][1])
-                        data.append(menu[i][0])
-                    else:
-                        all_mod_ids.append(None)
-                        data.append(menu[i])
-            num_deleted = self.max_rows * len(layout[0])
-            all_mod_ids = all_mod_ids[num_deleted:]
-            data = data[num_deleted:]
-
-            sub_menu = menu[this_index]
-            this_index = 0
-            leftover = layout[self.max_rows-1][-1]
-            if isinstance(data[this_index], dict):
-                sub_menu[this_index] = data
-            else:
-                sub_menu[this_index] = [data[this_index], all_mod_ids[this_index]]
-            this_index = this_index + 1
-            del menu[leftover[0]]
-            for overflow_line in all_overflowed:
-                for overflow_item in overflow_line:
-                    if isinstance(data[this_index], dict):
-                        sub_menu[this_index] = data
-                    else:
-                        sub_menu[this_index] = [data[this_index], all_mod_ids[this_index]]
-                    this_index = this_index + 1
-                    del menu[overflow_item[0]]
-            # 递归分页
-            self.all_width = False
-            result = paginate(sub_menu, texty_span, title=title, level=level+1)
-            if result == "okay":
-                return "okay"
-
-        self.thisin_menu = copy.deepcopy(self.menu)
-        paginate(self.thisin_menu, self.texty_span)
-        test = 1
+    def get_position(self):
+        return self.position
 
     def _get_layout_from_menu(self, menu):
         items = []
@@ -794,6 +770,8 @@ class ntcod_menu(tcod_frame):
             if i != "title":
                 if isinstance(menu[i], dict):
                     items.append((index, menu[i]["title"]))
+                elif isinstance(menu[i], ntcod_menu):
+                    items.append((index, menu[i].get_title()))
                 else:
                     items.append((index, menu[i][0]))
                 index = index + 1
@@ -812,16 +790,77 @@ class ntcod_menu(tcod_frame):
                 col = idx % num_cols
                 row = idx // num_cols
                 layout[row].append((menu_idx, label_str))
-                col_widths[col] = max(col_widths[col], len(label_str))
+                col_widths[col] = max(col_widths[col], len(label_str) + 2)
 
             total_width = sum(col_widths) + spacing * (num_cols - 1)
             if total_width <= self.text_span:
                 return layout, col_widths
 
-        col_widths = [max(len(l[1]) for l in items)]
+        col_widths = [max(len(l[1]) + 2 for l in items)]
+        if col_widths[0] > self.text_span - 2:
+            col_widths = [self.text_span - 2]
         layout = [[item] for item in items]
 
         return layout, col_widths
+
+    def reshape_to_cols(self, data: List[List[Any]], cols: int) -> List[List[Any]]:
+        flat = list(chain.from_iterable(data))
+        new_data = [flat[i:i + cols] for i in range(0, len(flat), cols)]
+        return new_data
+
+    def very_adaptive(self, out_layout):
+        spacing = 2
+        layout = copy.deepcopy(out_layout)
+        num_cols = len(layout[0])
+        while True:
+            current_insert = self.max_rows - 1
+            need_insert = current_insert < (len(layout) - 1)
+            while need_insert:
+                layout[current_insert].insert(len(layout[current_insert]) - 1, (999999999,"►"))
+                layout = self.reshape_to_cols(layout, num_cols)
+                current_insert = current_insert + self.max_rows
+                need_insert = current_insert < (len(layout) - 1)
+            col_widths = [0] * num_cols
+            for i in range(len(col_widths)):
+                max_width = 0
+                for j in range(len(layout) - 1):
+                    if len(layout[j][i][1])+2 > max_width:
+                        max_width = len(layout[j][i][1])+2
+                if len(layout[-1]) > i:
+                    if len(layout[-1][i][1])+2 > max_width:
+                        max_width = len(layout[-1][i][1])+2
+                col_widths[i] = max_width
+            if ((sum(col_widths) + spacing * (num_cols - 1)) <= self.text_span) or (num_cols==1):
+                return layout, col_widths
+            else:
+                return self.very_adaptive(self.reshape_to_cols(layout, num_cols - 1))
+
+    def main_logic(self, menu_in):
+        layout, col_widths = self._get_layout_from_menu(menu_in)
+        if self.force_num_col is not None:
+            layout, col_widths = self.very_adaptive(self.reshape_to_cols(layout, self.force_num_col))
+        else:
+            layout, col_widths = self.very_adaptive(layout)
+        keys_of_menu = list(menu_in.keys())
+        num_went_through = 0
+        final_menu = {}
+        this_menu = final_menu
+        this_menu["title"] = menu_in["title"]
+        num_went_through += 1
+        for layout_line in layout:
+            for layout_item in layout_line:
+                if layout_item[1] != "►":
+                    this_menu[layout_item[0]] = menu_in[keys_of_menu[num_went_through]]
+                    num_went_through += 1
+                else:
+                    this_menu[999999999] = {"title": "►"}
+                    this_menu = this_menu[999999999]
+        menu_out = final_menu
+        layout_out = layout
+        num_col_ou = len(col_widths)
+        col_width_out = col_widths
+        return [menu_out, layout_out, num_col_ou, col_width_out]
+
 
     # 替换 get_adaptive_layout 使用分页后的菜单获取布局
     def get_adaptive_layout(self):
@@ -840,23 +879,12 @@ class ntcod_menu(tcod_frame):
             return "skip"
         else:
             point = self.thisin_menu
+            layout_level = 0
             for i in range(level):
                 point = point[999999999]
+                layout_level += 1
+            return [self.full_layout[layout_level*self.max_rows:(layout_level+1)*self.max_rows], self.col_widths]
 
-            layout = []
-            for item in point:
-                if item != "title":
-                    if not isinstance(point[item], dict):
-                        layout.append([(item, point[item][0])])
-                    else:
-                        layout.append([(item, point[item]["title"])])
-            return [self.reshape_to_cols(layout, self.num_col), self.col_widths]
-
-
-    def set_direct_menu(self, new_menu):
-        self.clear()
-        for item in new_menu.keys():
-            self.add_menu_item(new_menu[item], "system")
 
     def add_menu_item(self, item, from_mod):
         if not hasattr(self, "_cur_line_width"):
@@ -867,40 +895,54 @@ class ntcod_menu(tcod_frame):
             self._spacing = 2
 
         if isinstance(item, dict):
-            label_str = f"[{item['title']}]"
-        else:
-            label_str = f"[{item[0]}]"
-
-        next_item_width = len(label_str) + self._spacing
-
-        if isinstance(item, dict):
-            def patch_numeric_keys(d: dict, tag: str = "mytext") -> None:
-                for k, v in list(d.items()):
-                    if isinstance(k, (int, float, complex)) or (isinstance(k, str) and k.isdigit()):
-                        d[k] = [v, tag]
-                    if isinstance(v, dict):
-                        patch_numeric_keys(v, tag)
-
+            # def patch_numeric_keys(d: dict, tag: str = "mytext") -> None:
+            #     for k, v in list(d.items()):
+            #         if isinstance(k, (int, float, complex)) or (isinstance(k, str) and k.isdigit()):
+            #             d[k] = [v, tag]
+            #         if isinstance(v, dict):
+            #             patch_numeric_keys(v, tag)
+            # patch_numeric_keys(item, from_mod)
             dict_title = item["title"]
-            patch_numeric_keys(item, from_mod)
-            self.menu[self.index] = item
+
+            sub_menu = ntcod_menu(self.start_y, self.start_x, self.y_span, self.x_span, title=dict_title, draw_frame=self.draw_frame, parent_menu=self.title)
+            sub_menu.set_direct_menu(item)
+            self.menu[self.index] = sub_menu
+
             label_length = len(f"[{dict_title}]")
         else:
             self.menu[self.index] = [item, from_mod]
             label_length = len(f"[{item[0]}]")
 
-        if self.adaptive:
-            self._cur_line_width += label_length + self._spacing
+        self._cur_line_width += label_length + self._spacing
 
         self.index += 1
-        self.finalize_adaptive_menu()
-        self.this_menu[0] = self.thisin_menu
+        out = self.main_logic(self.menu)
+        self.thisin_menu = out[0]
+        levels = len(self.this_menu)
+        for i in range(levels):
+            if i == 0:
+                self.this_menu[i] = self.thisin_menu
+            else:
+                if 999999999 not in self.this_menu[i-1].keys():
+                    continue
+                self.this_menu[i] = self.this_menu[i-1][999999999]
+        self.full_layout = out[1]
+        self.num_col = out[2]
+        self.col_widths = out[3]
+
+
+    def set_direct_menu(self, new_menu):
+        self.clear()
+        for item in new_menu.keys():
+            if item != "title":
+                self.add_menu_item(new_menu[item], "system")
 
     def clear(self):
         for i in list(self.menu.keys()):
             if i != "title":
                 del self.menu[i]
         self.index = 0
+
 
     def display(self, console):
         # self.finalize_adaptive_menu()
@@ -934,14 +976,20 @@ class ntcod_menu(tcod_frame):
         for row_idx, row in enumerate(layout):
             cursor_x = self.start_print_x + 1
             for col_idx, (menu_idx, label_str) in enumerate(row):
+                label_str = "[" + label_str + "]"
                 padded = label_str.ljust(col_widths[col_idx])
                 fg = FGF if menu_idx == self.choice else FGN
                 y_pos = start_y + row_idx * 2
-                console.print(y=y_pos + 1, x=cursor_x, string=padded, fg=fg)
+                if len(padded) > self.text_span:
+                    if padded.rfind("]") < self.text_span:
+                        console.print(y=y_pos + 1, x=cursor_x, string=padded[:self.text_span], fg=fg)
+                    else:
+                        console.print(y=y_pos + 1, x=cursor_x, string=padded[:self.text_span - 4] + "...]", fg=fg)
+                else:
+                    console.print(y=y_pos + 1, x=cursor_x, string=padded, fg=fg)
                 cursor_x += spacing + len(padded)
 
         self.last_choice = print_line - 2
-
 
 
 class ntcod_input(tcod_frame):
@@ -963,10 +1011,12 @@ class ntcod_input(tcod_frame):
             thisstring = thisstring[(self.x_span - 2):len(thisstring)]
             index += 1
         console.print(y=self.start_print_y + index, x=self.start_print_x, string=thisstring)
+        index += 1
         console.print(y=self.start_print_y + index + 1, x=self.start_print_x, string=self.output)
         console.print(y=self.start_print_y + index + 1, x=self.start_print_x + self.cursor, string=" ",
                       bg=FGF)
         if not self.return_integer:
+            index += 1
             thisstring = "Capitalized: " + str(self.capitalized)
             while len(thisstring) > (self.x_span - 2):
                 console.print(y=self.start_print_y + index + 2, x=self.start_print_x,

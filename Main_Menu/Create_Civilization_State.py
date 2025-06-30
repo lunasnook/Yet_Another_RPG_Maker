@@ -87,10 +87,10 @@ create_civilization_menu = {
 
 def output_function_map(context: tcod.context.new_terminal, console: tcod.console.Console, choice: list, output: dict, window: UI.tcod_window) -> dict:
     if choice[-1][0] == "Name Civilization To Create":
-        thisin = UI.ntcod_input(17, 25, 17, 25, output["civilization_name"], "civilization name[A-Z,a-z,0-9,' ']", False)
+        thisin = UI.ntcod_input(28, 42, 10, 15,  output["civilization_name"], "civilization name[A-Z,a-z,0-9,' ']", False)
         output["civilization_name"] = window.pop_frame(thisin, context, console)
     elif choice[-1][0] == "Set The Number of People":
-        thisin = UI.ntcod_input(17, 25, 17, 25, output["number"],
+        thisin = UI.ntcod_input(28, 42, 10, 15,  output["number"],
                                        "number of people [0-9]", True)
         output["number"] = window.pop_frame(thisin, context, console)
     elif choice[-1][0] == 'Continue To Mods':
@@ -108,11 +108,10 @@ deoutput = {
 
 def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> None:
     # configure menu loop
-    background = UI.ntcod_textout(0, 0, 50, 75, "", False)
-    menu = UI.ntcod_menu(17, 20, 17, 35, title="Create Civilization Menu")
+    background = UI.BACKGROUND
+    menu = UI.ntcod_menu(22, 33, 22, 33, title="Create Civilization Menu")
     menu.set_direct_menu(create_civilization_menu)
     window = UI.tcod_window(background, menu)
-    window.set_focus(1)
     while True:
         console.clear()
 
@@ -137,7 +136,7 @@ def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> N
         return
 
     civilization = Civilization(civilization_name, peoples, mods_load)
-    thisin = UI.ntcod_input(17, 25, 17, 25, "civilization",
+    thisin = UI.ntcod_input(28, 42, 10, 15,  "civilization",
                                    "input name of civilization file", False)
     civilization_file_name = window.pop_frame(thisin, context, console)
     IO.save_object_to_file("Play/", civilization_file_name, "civilization", civilization, False)

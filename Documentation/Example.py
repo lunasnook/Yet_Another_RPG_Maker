@@ -16,7 +16,7 @@ class Example:
     def update(self, **kwargs) -> None:
         return
 
-    def print(self, **kwargs): # None or list[page, content]
+    def print(self, **kwargs): # None or list[page, content0 or [content1, [content2, space, middle]]
         return
 
     def get_actions(self, **kwargs): # None or list[actions...]
