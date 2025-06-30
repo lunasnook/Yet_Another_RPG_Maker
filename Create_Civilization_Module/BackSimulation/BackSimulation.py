@@ -3,6 +3,7 @@ import random
 import numpy as np
 import Create_Civilization_Module.Demographics.Demographics as Demographics
 from Library import UI
+from Library.UI import OTH, OTW
 
 
 class BackSimulation_Plugin(IPlugin):
@@ -73,7 +74,7 @@ class BackSimulation:
         settlement_mod = kwargs["mods"][self.require]
         self.settlement_name = settlement_mod.get_settlement_name()
 
-        progress = UI.ntcod_textout(22, 33, 22, 33, "simulation progress", False)
+        progress = UI.ntcod_textout(OTH, OTW, OTH, OTW, "simulation progress", False)
         kwargs["window"].add_frame(progress)
 
         for i in range(self.simulate_years):

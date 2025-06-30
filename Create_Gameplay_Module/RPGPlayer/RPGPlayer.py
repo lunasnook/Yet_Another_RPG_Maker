@@ -1,5 +1,6 @@
 from yapsy.IPlugin import IPlugin
 from Library import UI
+from Library.UI import OTH, OTW, OFH, OFW, OFHS, OFWS, HEIGHT
 
 
 class RPGPlayer_Plugin(IPlugin):
@@ -43,7 +44,7 @@ class RPGPlayer:
             self.tiles.append(self.current_tile)
             context = kwargs["context"]
             console = kwargs["console"]
-            thisin = UI.ntcod_input(28, 42, 10, 15, self.name, "enter player name [A-Z,a-z,0-9,' ']", False)
+            thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,  self.name, "enter player name [A-Z,a-z,0-9,' ']", False)
             self.name = kwargs["window"].pop_frame(thisin, context, console)
             self.name_entered = True
 
@@ -107,7 +108,7 @@ class RPGPlayer:
             else:
                 code = "0t"
         elif action == "Rest":
-            varss = window.pop_frame(UI.ntcod_input(28, 42, 10, 15, varss, "rest for [0-9]", True), context, console)
+            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "rest for [0-9]", True), context, console)
             code = "varssf"
         elif action == "Enter Map":
             menu_of_submap = {}
@@ -115,7 +116,7 @@ class RPGPlayer:
             for submap in self.maps[-1].get_submap(self.posi_y, self.posi_x):
                 menu_of_submap[index] = submap[0]
                 index += 1
-            this_menu_UI = UI.ntcod_menu(22, 33, 22, 33, title="List of Maps")
+            this_menu_UI = UI.ntcod_menu(OTH, OTW, OTH, OTW, title="List of Maps")
             this_menu_UI.set_direct_menu(menu_of_submap)
             choice = window.pop_frame(this_menu_UI, context, console)
             for i in range(index):
@@ -123,7 +124,7 @@ class RPGPlayer:
                     choice = i
                     break
             self.player_added = False
-            self.current_tile = UI.ntcod_tile(5, 25, 49, 49, self, True)
+            self.current_tile = UI.ntcod_tile(OFH, OTW, HEIGHT - 2 * OFH, OTW, self, True)
             self.tiles.append(self.current_tile)
             window.add_frame(self.current_tile, change_focus=False,frameid="rpgplayer_submap" )
 

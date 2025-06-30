@@ -6,6 +6,8 @@ from Library import UI
 from Library import IO
 import copy
 
+from Library.UI import OFW, WIDTH, OFH, HEIGHT, OTH, OTW, OFHS, OFWS
+
 
 def main_update(action_time, local_map: Main_Menu.Create_World_State.MapData, peoples: Main_Menu.Create_Civilization_State.PopulationData, mods: dict, context: tcod.context.new_terminal, console: tcod.console.Console, window: UI.tcod_window) -> list:
     start_operation = time.time()
@@ -58,11 +60,11 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
                     deepest_level = window.get(i)[0].get_player_level()
         mods["rpgplayer"] = deepest
     else:
-        maintile = UI.ntcod_tile(0, 0, 66, 99)
+        maintile = UI.ntcod_tile(0, 0, HEIGHT, WIDTH)
         local_map.set_default_screen_to_tile(maintile)
 
-        mainout = UI.ntcod_textout(0, 50, 30, 25, initial_text, smart_page=True, show_page=True)
-        mainmenu = UI.ntcod_menu(60, 8, 8, 83, title="Select an option")
+        mainout = UI.ntcod_textout(OFHS, OFWS, HEIGHT - 2 * OFHS, WIDTH - 2 * OFWS, initial_text, smart_page=True, show_page=True)
+        mainmenu = UI.ntcod_menu(HEIGHT - 6, OFWS, 8, WIDTH - 2 * OFWS, title="Select an option")
         window = UI.tcod_window(maintile, mainout, mainmenu)
     action_time, elapse_time = main_update(1, local_map, peoples, mods, context, console, window)
     while True:
@@ -103,7 +105,7 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
             if choice[-1][0] == "next page":
                 window.get(1)[0].next_page()
             elif choice[-1][0] == "go to page":
-                thisin = UI.ntcod_input(28, 42, 10, 15,  "overview",
+                thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,  "overview",
                                                "go to page [A-Z,a-z,0-9,' ']", False)
                 whichpage = window.pop_frame(thisin, context, console)
                 if whichpage in list(window.get(1)[0].get_keys()):
@@ -119,7 +121,7 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
                         i = i + 1
                         index_info[this_page[this_key]["content"][0][0]] = [page, this_page[this_key]["modid"]]
                         # [page, this_page[this_key]["content"]]
-                this_menu_ui = UI.ntcod_menu(22, 33, 22, 33, title="Choose Section")
+                this_menu_ui = UI.ntcod_menu(OTH, OTW, OTH, OTW, title="Choose Section")
                 this_menu_ui.set_direct_menu(this_menu)
                 whichinfo = window.pop_frame(this_menu_ui, context, console)
                 if whichinfo != "last_page":
@@ -135,7 +137,7 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
                         i = i + 1
                         index_info[this_page[this_key]["content"][0][0]] = [page, this_page[this_key]["modid"]]
                         # [page, this_page[this_key]["content"]]
-                this_menu_ui = UI.ntcod_menu(22, 33, 22, 33, title="Choose Section")
+                this_menu_ui = UI.ntcod_menu(OTH, OTW, OTH, OTW,  title="Choose Section")
                 this_menu_ui.set_direct_menu(this_menu)
                 whichinfo = window.pop_frame(this_menu_ui, context, console)
                 if whichinfo != "last_page":
