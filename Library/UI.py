@@ -183,76 +183,52 @@ COLOR_TEXT = [FGF]
 # ====================
 COLOR_PLAYER = (43, 43, 43)
 # ====================
-ALPHA = 128
+ALPHA = 166
 
 
-def alpha_print(console, y, x, string, fg=None, bg=None, alpha=ALPHA, frame_width=99, frame_height=66):
-    # get foreground color from console at position console.fg[x, y]
-    # get background color from console at position console.bg[x, y]
-    # get character from console at position console.ch[x, y]
 
+def alpha_print(console, y, x, string, fg=None, bg=None, alpha=ALPHA,
+                frame_width=99, frame_height=66):
     def color_mix(color1, color2, alpha):
-        newR = color2[0] / 255 * alpha / 255 + color1[0] / 255 * (1 - alpha / 255)
-        newG = color2[1] / 255 * alpha / 255 + color1[1] / 255 * (1 - alpha / 255)
-        newB = color2[2] / 255 * alpha / 255 + color1[2] / 255 * (1 - alpha / 255)
-        return tuple([int(newR * 255), int(newG * 255), int(newB * 255)])
+        r = color2[0] / 255 * alpha / 255 + color1[0] / 255 * (1 - alpha / 255)
+        g = color2[1] / 255 * alpha / 255 + color1[1] / 255 * (1 - alpha / 255)
+        b = color2[2] / 255 * alpha / 255 + color1[2] / 255 * (1 - alpha / 255)
+        return int(r * 255), int(g * 255), int(b * 255)
 
-    # 如果没有提供前景色，使用默认的 FGF
     if fg is None:
         fg = FGF
 
-    # 遍历字符串中的每个字符
     for i, char in enumerate(string):
-        current_x = x + i
-        current_y = y
-
-        # 检查是否在边界内
-        if current_x < 0 or current_x >= frame_width or current_y < 0 or current_y >= frame_height:
+        cx, cy = x + i, y
+        if cx < 0 or cx >= frame_width or cy < 0 or cy >= frame_height:
             continue
 
-        # 获取当前位置的原始内容
-        old_char_code = console.ch[current_y, current_x]
-        old_fg = console.fg[current_y, current_x]
-        old_bg = console.bg[current_y, current_x]
+        old_char_code = console.ch[cy, cx]
+        old_fg = console.fg[cy, cx]
+        old_bg = console.bg[cy, cx]
 
-        # 将字符编码转换为字符
-        old_char = chr(old_char_code) if old_char_code != 0 else ' '
+        old_char = chr(old_char_code) if old_char_code else ' '
+        old_fg_tuple = tuple(old_fg.tolist()) if hasattr(old_fg, 'tolist') else old_fg
+        old_bg_tuple = tuple(old_bg.tolist()) if hasattr(old_bg, 'tolist') else old_bg
 
-        # 确定最终要显示的字符和颜色
+        # ----------- 空字符处理 -----------
         if char == ' ':
-            # 如果新字符是空格，保留原字符，但需要考虑新背景色对原前景色的影响
             final_char = old_char
-            final_fg = fg  # 新的前景色
-            # 处理背景色和前景色的转换，将 numpy 数组转换为元组
-            old_fg_tuple = tuple(old_fg.tolist()) if hasattr(old_fg, 'tolist') else old_fg
-            old_bg_tuple = tuple(old_bg.tolist()) if hasattr(old_bg, 'tolist') else old_bg
-
             if bg is not None:
-                # 如果有新背景色，进行颜色混合
+                # 背景色按 alpha 混合
                 final_bg = color_mix(old_bg_tuple, bg, alpha)
-                # 由于背景色改变，可能需要调整前景色以保持可读性
-                # 这里使用新的前景色，但考虑与新背景的混合效果
-                final_fg = color_mix(old_fg_tuple, fg, alpha)
+                # 前景色也按同样 alpha 与新背景色混合
+                final_fg = color_mix(old_fg_tuple, bg, alpha)
             else:
-                final_bg = old_bg_tuple
+                final_bg, final_fg = old_bg_tuple, old_fg_tuple
+
+        # ----------- 普通字符处理 -----------
         else:
-            # 如果新字符不是空格，使用新字符
             final_char = char
-            final_fg = fg  # 新的前景色（文本颜色总是新的）
-            # 处理背景色的转换
-            old_bg_tuple = tuple(old_bg.tolist()) if hasattr(old_bg, 'tolist') else old_bg
+            final_fg = fg
+            final_bg = color_mix(old_bg_tuple, bg, alpha) if bg is not None else old_bg_tuple
 
-            if bg is not None:
-                # 如果有新背景色，进行颜色混合
-                final_bg = color_mix(old_bg_tuple, bg, alpha)
-            else:
-                final_bg = old_bg_tuple
-
-        # 打印到控制台
-        if bg is not None:
-            console.print(current_x, current_y, final_char, fg=final_fg, bg=final_bg)
-        else:
-            console.print(current_x, current_y, final_char, fg=final_fg)
+        console.print(cx, cy, final_char, fg=final_fg, bg=final_bg)
 
 
 def tcod_event(event, shift=False):
@@ -558,10 +534,10 @@ class tcod_frame:
         for i in list(range(self.y_span)):
             for j in list(range(self.x_span)):
                 if self.draw_frame:
-                    if (i == 0) or (i == self.y_span - 1):
+                    if ((i == 0) or (i == self.y_span - 1)) and ((j != 0) and (j != self.x_span - 1)):
                         alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2500), fg=FGF,
                                       bg=BG)
-                    if (j == 0) or (j == self.x_span - 1):
+                    if ((j == 0) or (j == self.x_span - 1)) and ((i != 0) and (i != self.y_span - 1)):
                         alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2502), fg=FGF,
                                       bg=BG)
                     if (i == 0) and (j == 0):
