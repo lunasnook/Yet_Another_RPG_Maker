@@ -182,6 +182,77 @@ NUM_COLOR = 8
 COLOR_TEXT = [FGF]
 # ====================
 COLOR_PLAYER = (43, 43, 43)
+# ====================
+ALPHA = 128
+
+
+def alpha_print(console, y, x, string, fg=None, bg=None, alpha=ALPHA, frame_width=99, frame_height=66):
+    # get foreground color from console at position console.fg[x, y]
+    # get background color from console at position console.bg[x, y]
+    # get character from console at position console.ch[x, y]
+
+    def color_mix(color1, color2, alpha):
+        newR = color2[0] / 255 * alpha / 255 + color1[0] / 255 * (1 - alpha / 255)
+        newG = color2[1] / 255 * alpha / 255 + color1[1] / 255 * (1 - alpha / 255)
+        newB = color2[2] / 255 * alpha / 255 + color1[2] / 255 * (1 - alpha / 255)
+        return tuple([int(newR * 255), int(newG * 255), int(newB * 255)])
+
+    # 如果没有提供前景色，使用默认的 FGF
+    if fg is None:
+        fg = FGF
+
+    # 遍历字符串中的每个字符
+    for i, char in enumerate(string):
+        current_x = x + i
+        current_y = y
+
+        # 检查是否在边界内
+        if current_x < 0 or current_x >= frame_width or current_y < 0 or current_y >= frame_height:
+            continue
+
+        # 获取当前位置的原始内容
+        old_char_code = console.ch[current_y, current_x]
+        old_fg = console.fg[current_y, current_x]
+        old_bg = console.bg[current_y, current_x]
+
+        # 将字符编码转换为字符
+        old_char = chr(old_char_code) if old_char_code != 0 else ' '
+
+        # 确定最终要显示的字符和颜色
+        if char == ' ':
+            # 如果新字符是空格，保留原字符，但需要考虑新背景色对原前景色的影响
+            final_char = old_char
+            final_fg = fg  # 新的前景色
+            # 处理背景色和前景色的转换，将 numpy 数组转换为元组
+            old_fg_tuple = tuple(old_fg.tolist()) if hasattr(old_fg, 'tolist') else old_fg
+            old_bg_tuple = tuple(old_bg.tolist()) if hasattr(old_bg, 'tolist') else old_bg
+
+            if bg is not None:
+                # 如果有新背景色，进行颜色混合
+                final_bg = color_mix(old_bg_tuple, bg, alpha)
+                # 由于背景色改变，可能需要调整前景色以保持可读性
+                # 这里使用新的前景色，但考虑与新背景的混合效果
+                final_fg = color_mix(old_fg_tuple, fg, alpha)
+            else:
+                final_bg = old_bg_tuple
+        else:
+            # 如果新字符不是空格，使用新字符
+            final_char = char
+            final_fg = fg  # 新的前景色（文本颜色总是新的）
+            # 处理背景色的转换
+            old_bg_tuple = tuple(old_bg.tolist()) if hasattr(old_bg, 'tolist') else old_bg
+
+            if bg is not None:
+                # 如果有新背景色，进行颜色混合
+                final_bg = color_mix(old_bg_tuple, bg, alpha)
+            else:
+                final_bg = old_bg_tuple
+
+        # 打印到控制台
+        if bg is not None:
+            console.print(current_x, current_y, final_char, fg=final_fg, bg=final_bg)
+        else:
+            console.print(current_x, current_y, final_char, fg=final_fg)
 
 
 def tcod_event(event, shift=False):
@@ -488,28 +559,28 @@ class tcod_frame:
             for j in list(range(self.x_span)):
                 if self.draw_frame:
                     if (i == 0) or (i == self.y_span - 1):
-                        console.print(y=self.start_y + i, x=self.start_x + j, string=chr(0x2500), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2500), fg=FGF,
                                       bg=BG)
                     if (j == 0) or (j == self.x_span - 1):
-                        console.print(y=self.start_y + i, x=self.start_x + j, string=chr(0x2502), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2502), fg=FGF,
                                       bg=BG)
                     if (i == 0) and (j == 0):
-                        console.print(y=self.start_y + i, x=self.start_x + j, string=chr(0x250C), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x250C), fg=FGF,
                                       bg=BG)
                     if (i == 0) and (j == self.x_span - 1):
-                        console.print(y=self.start_y + i, x=self.start_x + j, string=chr(0x2510), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2510), fg=FGF,
                                       bg=BG)
                     if (i == self.y_span - 1) and (j == 0):
-                        console.print(y=self.start_y + i, x=self.start_x + j, string=chr(0x2514), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2514), fg=FGF,
                                       bg=BG)
                     if (i == self.y_span - 1) and (j == self.x_span - 1):
-                        console.print(y=self.start_y + i, x=self.start_x + j, string=chr(0x2518), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2518), fg=FGF,
                                       bg=BG)
                 elif ((i == 0) | (i == self.y_span - 1)) | ((j == 0) | (j == self.x_span - 1)):
-                    console.print(y=self.start_y + i, x=self.start_x + j, string=" ", fg=FGF,
+                    alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=" ", fg=FGF,
                                   bg=BG)
                 if not (((i == 0) | (i == self.y_span - 1)) | ((j == 0) | (j == self.x_span - 1))):
-                    console.print(y=self.start_y + i, x=self.start_x + j, string=" ", fg=FGF,
+                    alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=" ", fg=FGF,
                                   bg=BG)
 
 
@@ -689,7 +760,7 @@ class ntcod_textout(tcod_frame):
                 color_index += 1
             if color_index == len(color_rotation):
                 color_index = 0
-            console.print(y=self.start_print_y + self.index, x=self.start_print_x,
+            alpha_print(console, y=self.start_print_y + self.index, x=self.start_print_x,
                           string=this_string[0], fg=color_rotation[color_index])
             self.index += 1
 
@@ -951,11 +1022,11 @@ class ntcod_menu(tcod_frame):
         for i in self.position:
             thisstring = i[0] + "/" if isinstance(i, list) else i + "/"
             if (length + len(thisstring)) > (self.text_span - 2):
-                console.print(y=self.start_print_y, x=self.start_print_x + length,
+                alpha_print(console, y=self.start_print_y, x=self.start_print_x + length,
                               string=thisstring[0:(self.text_span - length - 2)] + "...")
                 break
             else:
-                console.print(y=self.start_print_y, x=self.start_print_x + length, string=thisstring)
+                alpha_print(console, y=self.start_print_y, x=self.start_print_x + length, string=thisstring)
             length += len(thisstring)
         print_line += 1
 
@@ -982,11 +1053,11 @@ class ntcod_menu(tcod_frame):
                 y_pos = start_y + row_idx * 2
                 if len(padded) > self.text_span:
                     if padded.rfind("]") < self.text_span:
-                        console.print(y=y_pos + 1, x=cursor_x, string=padded[:self.text_span], fg=fg)
+                        alpha_print(console, y=y_pos + 1, x=cursor_x, string=padded[:self.text_span], fg=fg)
                     else:
-                        console.print(y=y_pos + 1, x=cursor_x, string=padded[:self.text_span - 4] + "...]", fg=fg)
+                        alpha_print(console, y=y_pos + 1, x=cursor_x, string=padded[:self.text_span - 4] + "...]", fg=fg)
                 else:
-                    console.print(y=y_pos + 1, x=cursor_x, string=padded, fg=fg)
+                    alpha_print(console, y=y_pos + 1, x=cursor_x, string=padded, fg=fg)
                 cursor_x += spacing + len(padded)
 
         self.last_choice = print_line - 2
@@ -1007,23 +1078,23 @@ class ntcod_input(tcod_frame):
         index = 0
         thisstring = self.input_str + ": "
         while len(thisstring) > (self.x_span - 2):
-            console.print(y=self.start_print_y + index, x=self.start_print_x, string=thisstring[0:(self.x_span - 2)])
+            alpha_print(console, y=self.start_print_y + index, x=self.start_print_x, string=thisstring[0:(self.x_span - 2)])
             thisstring = thisstring[(self.x_span - 2):len(thisstring)]
             index += 1
-        console.print(y=self.start_print_y + index, x=self.start_print_x, string=thisstring)
+        alpha_print(console, y=self.start_print_y + index, x=self.start_print_x, string=thisstring)
         index += 1
-        console.print(y=self.start_print_y + index + 1, x=self.start_print_x, string=self.output)
-        console.print(y=self.start_print_y + index + 1, x=self.start_print_x + self.cursor, string=" ",
+        alpha_print(console, y=self.start_print_y + index + 1, x=self.start_print_x, string=self.output)
+        alpha_print(console, y=self.start_print_y + index + 1, x=self.start_print_x + self.cursor, string=" ",
                       bg=FGF)
         if not self.return_integer:
             index += 1
             thisstring = "Capitalized: " + str(self.capitalized)
             while len(thisstring) > (self.x_span - 2):
-                console.print(y=self.start_print_y + index + 2, x=self.start_print_x,
+                alpha_print(console, y=self.start_print_y + index + 2, x=self.start_print_x,
                               string=thisstring[0:(self.x_span - 2)])
                 thisstring = thisstring[(self.x_span - 2):len(thisstring)]
                 index += 1
-            console.print(y=self.start_print_y + index + 2, x=self.start_print_x, string=thisstring)
+            alpha_print(console, y=self.start_print_y + index + 2, x=self.start_print_x, string=thisstring)
 
 
 class color_layers:
@@ -1238,7 +1309,7 @@ class ntcod_entity(tcod_frame):
     def display(self, console):
         if ((self.x - self.tilewindow.tileprintstart_x) >= 0) and ((self.x - self.tilewindow.tileprintstart_x) < self.tilewindow.final_x_span):
             if ((self.y - self.tilewindow.tileprintstart_y) >= 0) and ((self.y - self.tilewindow.tileprintstart_y) < self.tilewindow.final_y_span):
-                console.print(y=self.y - self.tilewindow.tileprintstart_y + self.tilewindow.final_start_y, x=self.x - self.tilewindow.tileprintstart_x + self.tilewindow.final_start_x, string=self.char, fg=self.color)
+                alpha_print(console, y=self.y - self.tilewindow.tileprintstart_y + self.tilewindow.final_start_y, x=self.x - self.tilewindow.tileprintstart_x + self.tilewindow.final_start_x, string=self.char, fg=self.color)
 
     def update(self, y, x):
         self.y = y
