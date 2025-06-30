@@ -3,6 +3,7 @@ import glob
 import json
 import os.path
 from Library import UI
+from Library.UI import OTH, OTW
 
 
 def validate_modules(root):
@@ -84,7 +85,7 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
                 console.clear()
 
                 background = UI.BACKGROUND
-                this_menu = UI.ntcod_menu(22, 33, 22, 33, title="Available Templates")
+                this_menu = UI.ntcod_menu(OTH, OTW, OTH, OTW,  title="Available Templates")
                 this_menu.set_direct_menu(templates_menu)
                 this_window = UI.tcod_window(background, this_menu)
                 choice = this_window.display(context, console)
@@ -126,7 +127,7 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
         console.clear()
 
         background = UI.BACKGROUND
-        menu = UI.ntcod_menu(22, 33, 22, 33, title="Mods Configuration Menu")
+        menu = UI.ntcod_menu(OTH, OTW, OTH, OTW,  title="Mods Configuration Menu")
         menu.set_direct_menu(mod_configuration_menu)
         window = UI.tcod_window(background, menu)
         choice = window.display(context, console)

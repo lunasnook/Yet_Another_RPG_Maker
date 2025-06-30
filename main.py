@@ -75,11 +75,18 @@ def function_map(context: tcod.context.new_terminal, root_console: tcod.console.
 
 WIDTH = 99
 HEIGHT = 66
+OTW = WIDTH // 3
+OTH = HEIGHT // 3
+OFWS = WIDTH // 5
+OFW = (WIDTH - OFWS) // 2
+OFHS = HEIGHT // 5
+OFH = (HEIGHT - OFHS) // 2
 ASPECT_RATIO = WIDTH / HEIGHT
 def main() -> None:
     # Settings
     title = "Yet Another RPG Maker"
     tileset = tcod.tileset.load_tilesheet("Default.png", 16, 16, tcod.tileset.CHARMAP_CP437)
+    # tileset = tcod.tileset.load_bdf("fusion-pixel-12px-monospaced-zh_hans.bdf")
     vsync = True
 
     with tcod.context.new_terminal(
@@ -91,7 +98,7 @@ def main() -> None:
     ) as context:
         root_console = tcod.console.Console(width=WIDTH, height=HEIGHT)
         background = UI.BACKGROUND
-        menu = UI.ntcod_menu(22, 33, 22, 33, draw_frame=False, title="Main Menu", force_num_col=1)
+        menu = UI.ntcod_menu(OTH, OTW, OTH, OTW, draw_frame=False, title="Main Menu", force_num_col=1)
         menu.set_direct_menu(main_menu)
         window = UI.tcod_window(background, menu)
 

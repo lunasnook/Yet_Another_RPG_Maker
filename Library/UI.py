@@ -7,6 +7,14 @@ import random
 from itertools import chain
 from typing import List, Any
 
+WIDTH = 99
+HEIGHT = 66
+OTW = WIDTH // 3
+OTH = HEIGHT // 3
+OFWS = WIDTH // 5
+OFW = (WIDTH - OFWS) // 2
+OFHS = HEIGHT // 5
+OFH = (HEIGHT - OFHS) // 2
 
 def color_rotation_calculator(
     bg_rgb,
@@ -184,7 +192,6 @@ COLOR_TEXT = [FGF]
 COLOR_PLAYER = (43, 43, 43)
 # ====================
 ALPHA = 166
-
 
 
 def alpha_print(console, y, x, string, fg=None, bg=None, alpha=ALPHA,
@@ -764,7 +771,7 @@ class ntcod_textout(tcod_frame):
 
     def get_smart_pages(self):
         return self.smart_pages
-BACKGROUND = ntcod_textout(-1, -1, 68, 101, "", False, "", draw_frame=True)
+BACKGROUND = ntcod_textout(-1, -1, HEIGHT+2, WIDTH+2, "", False, "", draw_frame=True)
 
 
 class ntcod_menu(tcod_frame):

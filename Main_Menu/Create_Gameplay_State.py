@@ -4,6 +4,8 @@ from Library import Module
 from Library import IO
 import tcod
 
+from Library.UI import OTH, OTW, OFH, OFW, OFHS, OFWS
+
 
 class GameplayList:
     def __init__(self, name: str, mods: dict):
@@ -25,7 +27,7 @@ create_gameplay_menu = {
 
 def output_function_map(context: tcod.context.new_terminal, console: tcod.console.Console, choice: list, output: dict, window: UI.tcod_window) -> dict:
     if choice[-1][0] == "Name The Genre To Be Created":
-        thisin = UI.ntcod_input(28, 42, 10, 15,  output["genre_name"],
+        thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,   output["genre_name"],
                                        "name of game genre [A-Z,a-z,0-9,' ']", False)
         output["genre_name"] = window.pop_frame(thisin, context, console)
     elif choice[-1][0] == 'Continue To Mods':
@@ -42,7 +44,7 @@ deoutput = {
 def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> None:
     # configure menu loop
     background = UI.BACKGROUND
-    menu = UI.ntcod_menu(22, 33, 22, 33, title="Create Gameplay Menu")
+    menu = UI.ntcod_menu(OTH, OTW, OTH, OTW,  title="Create Gameplay Menu")
     menu.set_direct_menu(create_gameplay_menu)
     window = UI.tcod_window(background, menu)
     while True:
@@ -65,7 +67,7 @@ def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> N
         return
 
     gameplay = GameplayList(genre_name, mods_load)
-    thisin = UI.ntcod_input(28, 42, 10, 15,  "gameplay",
+    thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,   "gameplay",
                                    "input name of gameplay file", False)
     gameplay_file_name = window.pop_frame(thisin, context, console)
     IO.save_object_to_file("Play/", gameplay_file_name, "gameplay", gameplay, False)
