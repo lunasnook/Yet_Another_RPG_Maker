@@ -74,10 +74,6 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
         mainmenu.clear()
         mainout.check_based("System", mainmenu)
         mainout.change_base("System")
-        mainout.add_text(
-            page="System",
-            text=action_time + ' in-game time took ' + elapse_time.split(".")[0] + "." + elapse_time.split(".")[1][0:5] + ' seconds',
-            modid="system")
         for mod in list(mods.keys()):
             textoutput = mods[mod].print(map=local_map, peoples=peoples, mods=mods)
             if textoutput is not None:
@@ -92,13 +88,20 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
                                 key = textoutput[i][j]
                             else:
                                 mainout.add_text(page=page, key=key, text=textoutput[i][j][0], modid=mod, spacing=textoutput[i][j][1], middle=textoutput[i][j][2])
+        mainout.add_text(
+            page="System",
+            text=action_time + ' in-game time took ' + elapse_time.split(".")[0] + "." + elapse_time.split(".")[1][
+                                                                                         0:5] + ' seconds',
+            modid="system")
 
-        # mainmenu.add_menu_item({"title": "System", 0: {"title": "Navigation", 0: "pin unpin section"}}, "system")
-        # mainmenu.add_menu_item({"title": "System", 0: {"title": "Navigation", 0: "hide unhide section"}}, "system")
         for mod in list(mods.keys()):
             this_list = mods[mod].get_actions(map=local_map, peoples=peoples, mods=mods, window=window, context=context, console=console)
             if this_list is not None:
-                mainmenu.add_menu_item(this_list, mod)
+                if isinstance(this_list, dict):
+                    mainmenu.add_menu_item(this_list, mod)
+                else:
+                    for mmmenu in this_list:
+                        mainmenu.add_menu_item(mmmenu, mod)
         for first in mainout.get_first_levels():
             ifound = False
             for nmenu in mainmenu.menu.keys():
@@ -120,40 +123,8 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
                 thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,  "overview",
                                                "go to page [A-Z,a-z,0-9,' ']", False)
                 whichpage = window.pop_frame(thisin, context, console)
-                if whichpage in list(window.get(1)[0].get_keys()):
+                if (window.get(1)[0].get_keys() is not None) and (whichpage in list(window.get(1)[0].get_keys())):
                     window.get(1)[0].set_current_page(whichpage)
-            elif choice[-1][0] == "pin unpin section":
-                this_menu = {}
-                i = 0
-                index_info = {}
-                for page in mainout.get_smart_pages().keys():
-                    this_page = mainout.get_smart_pages()[page]
-                    for this_key in this_page.keys():
-                        this_menu[i] = this_page[this_key]["content"][0][0]
-                        i = i + 1
-                        index_info[this_page[this_key]["content"][0][0]] = [page, this_page[this_key]["modid"]]
-                        # [page, this_page[this_key]["content"]]
-                this_menu_ui = UI.ntcod_menu(OTH, OTW, OTH, OTW, title="Choose Section")
-                this_menu_ui.set_direct_menu(this_menu)
-                whichinfo = window.pop_frame(this_menu_ui, context, console)
-                if whichinfo != "last_page":
-                    mainout.add_pinned(index_info[whichinfo[-1][0]][0], index_info[whichinfo[-1][0]][1])
-            elif choice[-1][0] == "hide unhide section":
-                this_menu = {}
-                i = 0
-                index_info = {}
-                for page in mainout.get_smart_pages().keys():
-                    this_page = mainout.get_smart_pages()[page]
-                    for this_key in this_page.keys():
-                        this_menu[i] = this_page[this_key]["content"][0][0]
-                        i = i + 1
-                        index_info[this_page[this_key]["content"][0][0]] = [page, this_page[this_key]["modid"]]
-                        # [page, this_page[this_key]["content"]]
-                this_menu_ui = UI.ntcod_menu(OTH, OTW, OTH, OTW,  title="Choose Section")
-                this_menu_ui.set_direct_menu(this_menu)
-                whichinfo = window.pop_frame(this_menu_ui, context, console)
-                if whichinfo != "last_page":
-                    mainout.add_hidden(index_info[whichinfo[-1][0]][0], index_info[whichinfo[-1][0]][1])
 
             elif choice[-1][0] == "Save and Quit":
                 IO.save_object_to_file("Continue/", "world", "world", world, False)

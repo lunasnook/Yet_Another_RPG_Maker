@@ -76,7 +76,7 @@ class RPGPlayer:
         return {"title": "System", 0: {"title": "overview", 0: ["Welcome " + self.get_name(), 1, 0], 1: ["your coordinate: " + str(self.get_position()[0]) + ", " + str(self.get_position()[1]), 0, 0]}}
 
     def get_actions(self, **kwargs):
-        this_actions = ["toggle entity view", "Rest", "Move North", "Move East", "Move South", "Move West"]
+        this_actions = ["Rest", "Move North", "Move East", "Move South", "Move West"]
         if (self.posi_y, self.posi_x) in self.maps[-1].get_submap_keys():
             this_actions.append("Enter Map")
         if len(self.positions) > 1:
@@ -84,7 +84,8 @@ class RPGPlayer:
         return_dict = {"title": "Misc.", 0: {"title": "Movement"}}
         for i in range(len(this_actions)):
             return_dict[0][i] = this_actions[i]
-        return return_dict
+        return_dict2 = {"title": "World", 0: {"title": "Environment", 0: "toggle entity view"}}
+        return [return_dict, return_dict2]
 
     def act_on_action(self, **kwargs):
         self.height = self.maps[-1].get_height()

@@ -192,7 +192,7 @@ COLOR_TEXT = [FGF]
 # ====================
 COLOR_PLAYER = (43, 43, 43)
 # ====================
-ALPHA = 220
+ALPHA = 200
 
 
 def alpha_print(console, y, x, string, fg=None, bg=None, alpha=ALPHA,
@@ -470,8 +470,10 @@ class tcod_window:
                                 ##########
                                 if self.focus == 2:
                                     secondary = this_menu[-1][current_key].menu["title"]
-                                    self.frames_in_window[1][0].change_base(secondary)
-                                    self.frames_in_window[1][0].set_hide(False)
+                                    if secondary in self.frames_in_window[1][0].list_of_ntcod_textout.keys():
+                                        self.frames_in_window[1][0].change_base(secondary)
+                                        self.frames_in_window[1][0].set_default()
+                                        self.frames_in_window[1][0].set_hide(False)
                                 ##########
                                 sepe_way = self.pop_frame(this_menu[-1][current_key], context, console)
                                 ##########
@@ -629,6 +631,12 @@ class list_of_ntcod_textout:
     def add_text(self, page = "System", key="overview", text="", modid=None, spacing=True, middle=False):
         self.list_of_ntcod_textout[page].add_text(text, key, modid, spacing, middle)
         return
+
+    def set_default(self):
+        self.list_of_ntcod_textout[self.based].set_current_page("overview")
+
+    def get_keys(self):
+        self.list_of_ntcod_textout[self.based].get_keys()
 
     def clear(self):
         default_illusion = ntcod_textout(OSHS, OFWS, HEIGHT - OFHS - OSHS, WIDTH - 2 * OFWS, "", smart_page=True,
