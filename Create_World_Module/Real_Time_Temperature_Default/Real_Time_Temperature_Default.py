@@ -31,7 +31,7 @@ class Real_Time_Temperature:
     def print(self, **kwargs):
         if "rpgplayer" in list(kwargs["mods"].keys()):
             tempt = str(kwargs["map"].get_attribute_at("real_time_temperature", kwargs["mods"]["rpgplayer"].get_position()[0], kwargs["mods"]["rpgplayer"].get_position()[1]))
-            return ["overview", "temperature: " + tempt.split(".")[0] + "." + tempt.split(".")[1][0:2] + " degree celsius"]
+            return {"title": "World", 0: {"title": "Environment", 0: ["temperature: " + tempt.split(".")[0] + "." + tempt.split(".")[1][0:2] + " degree celsius", 1, 0]}}
 
     def get_actions(self, **kwargs):
         return

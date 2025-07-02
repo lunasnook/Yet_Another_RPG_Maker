@@ -87,7 +87,7 @@ class Day_Night_Circle:
         return
 
     def get_actions(self, **kwargs):
-        return ["toggle day night"]
+        return {"title": "World", 0: {"title": "Environment", 0: "toggle day night"}}
 
     def act_on_action(self, **kwargs):
         if kwargs["action"][-1][0] == "toggle day night":

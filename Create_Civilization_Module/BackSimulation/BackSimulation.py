@@ -75,7 +75,7 @@ class BackSimulation:
         self.settlement_name = settlement_mod.get_settlement_name()
 
         progress = UI.ntcod_textout(OTH, OTW, OTH, OTW, "simulation progress", False)
-        kwargs["window"].add_frame(progress)
+        kwargs["window"].add_frame(progress, change_focus=False)
 
         for i in range(self.simulate_years):
             progress.clear()
@@ -201,7 +201,9 @@ class BackSimulation:
 
         self.simulated = True
         self.log.append(f"population: {peoples.get_number()} people")
-
+        self.log.append(f"families: {len(self.families)} households")
+        self.log.append(f"total births: {self.total_births}")
+        self.log.append(f"total deaths: {self.total_deaths}")
         peoples.drop_attribute(self.spouse_id)
 
 
@@ -209,7 +211,7 @@ class BackSimulation:
         return self.families
 
     def print(self, **kwargs):
-        return ["history", self.log]
+        return {"title": "Civilization", 0: {"title": "History", 0: [self.log[0], True, False], 1: [self.log[1], True, False], 2: [self.log[2], True, False], 3: [self.log[3], True, False]}}
 
     def get_actions(self, **kwargs):
         return

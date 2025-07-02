@@ -84,7 +84,7 @@ class Map_Feature_Extraction:
                 for id, items in self.database.items():
                     if items["module"] == "Map_Feature":
                         if (items["feature"] == self.feature) and (items["feat_id"] == location_feat):
-                            return ["overview", self.feature + ": " + items["feat_name"]]
+                            return {"title": "World", 0: {"title": "Environment", 0: [self.feature + ": " + items["feat_name"], 1, 0]}}
 
     def get_feat_name(self):
         return self.feature

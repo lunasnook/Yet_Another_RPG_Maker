@@ -127,7 +127,7 @@ class Settlements:
                     if [posi_y, posi_x] == self.positions[i]:
                         output = ["you are in " + self.settlement_name[i]]
                         output.extend(np.array(["population: " + str(self.statistics[i])]))
-                        return [self.id, output]
+                        return {"title": "Civilization", 0: {"title": self.id, 0: [output, 1, 0]}}
         return
 
     def get_actions(self, **kwargs): # None or list[actions...]

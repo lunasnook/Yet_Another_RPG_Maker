@@ -21,12 +21,11 @@ main_menu = {
     4: "Play",
     5: {
         "title": "Setting",
-        0: "Default Theme",
-        1: "Light Theme",
-        2: "Dark Theme",
-        3: "surprise!",
-        4: "Setting",
-        5: "Developer",
+        0: "Light Theme(Default)",
+        1: "Dark Theme",
+        2: "surprise!",
+        3: "Setting",
+        4: "Developer",
     },
     6: "Quit"
 }
@@ -43,12 +42,7 @@ def function_map(context: tcod.context.new_terminal, root_console: tcod.console.
         Create_Gameplay_State.main(context, root_console)
     elif choice[-1][0] == 'Play':
         Play.play(context, root_console)
-    elif choice[-1][0] == "Default Theme":
-        UI.BG = UI.BGI
-        UI.FGN = UI.FGNI
-        UI.FGF = UI.FGFI
-        UI.COLOR_TEXT = [UI.FGF]
-    elif choice[-1][0] == "Light Theme":
+    elif choice[-1][0] == "Light Theme(Default)":
         UI.BG = UI.BGL
         UI.FGN = UI.FGNL
         UI.FGF = UI.FGFL
@@ -73,15 +67,6 @@ def function_map(context: tcod.context.new_terminal, root_console: tcod.console.
     else:
         raise SystemExit()
 
-WIDTH = 99
-HEIGHT = 66
-OTW = WIDTH // 3
-OTH = HEIGHT // 3
-OFWS = WIDTH // 5
-OFW = (WIDTH - OFWS) // 2
-OFHS = HEIGHT // 5
-OFH = (HEIGHT - OFHS) // 2
-ASPECT_RATIO = WIDTH / HEIGHT
 def main() -> None:
     # Settings
     title = "Yet Another RPG Maker"
@@ -90,24 +75,24 @@ def main() -> None:
     vsync = True
 
     with tcod.context.new_terminal(
-            WIDTH,
-            HEIGHT,
+            UI.WIDTH,
+            UI.HEIGHT,
             title=title,
             tileset=tileset,
             vsync=vsync,
     ) as context:
-        root_console = tcod.console.Console(width=WIDTH, height=HEIGHT)
+        root_console = tcod.console.Console(width=UI.WIDTH, height=UI.HEIGHT)
         background = UI.BACKGROUND
-        menu = UI.ntcod_menu(OTH, OTW, OTH, OTW, draw_frame=False, title="Main Menu", force_num_col=1)
+        menu = UI.ntcod_menu(UI.OTH, UI.OTW, UI.OTH, UI.OTW, draw_frame=False, title="Main Menu", force_num_col=1)
         menu.set_direct_menu(main_menu)
         window = UI.tcod_window(background, menu)
 
         # 🔐 Lock the aspect ratio using SDL
         window_p = context.sdl_window_p  # Get SDL_Window*
         tcod.lib.SDL_SetWindowResizable(window_p, True)
-        tcod.lib.SDL_SetWindowMinimumSize(window_p, WIDTH * 5, HEIGHT * 5)
-        tcod.lib.SDL_SetWindowMaximumSize(window_p, WIDTH * 200, HEIGHT * 200)
-        tcod.lib.SDL_SetWindowAspectRatio(window_p, ASPECT_RATIO, ASPECT_RATIO)
+        tcod.lib.SDL_SetWindowMinimumSize(window_p, UI.WIDTH * 5, UI.HEIGHT * 5)
+        tcod.lib.SDL_SetWindowMaximumSize(window_p, UI.WIDTH * 200, UI.HEIGHT * 200)
+        tcod.lib.SDL_SetWindowAspectRatio(window_p, UI.ASPECT_RATIO, UI.ASPECT_RATIO)
 
 
         while True:

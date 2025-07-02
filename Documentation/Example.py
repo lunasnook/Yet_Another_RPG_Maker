@@ -16,10 +16,10 @@ class Example:
     def update(self, **kwargs) -> None:
         return
 
-    def print(self, **kwargs): # None or list[page, content0 or [content1, [content2, space, middle]]
+    def print(self, **kwargs): # None or {"title": "level1_name", 0: {"title": "level2_name", 0: [content, spaceTF, middleTF]}}
         return
 
-    def get_actions(self, **kwargs): # None or list[actions...]
+    def get_actions(self, **kwargs): # None or {"title": "level1_name", 0: {"title": "level2_name", 0: action}}
         return
 
     def act_on_action(self, **kwargs) -> list: # [action_time, menu_TF]

@@ -59,7 +59,7 @@ class TimeLine:
         output = 'STEP ' + str(self.step % self.settings[0])
         for time_index in range(len(self.settings)):
             output = output + ' ' + str(self.names[time_index]) + ' ' + str(self.current[time_index])
-        return ["overview", [["DATE&TIME", 1, 1], [output, 0, 0]]]
+        return {"title": "World", 0: {"title": "Environment", 0: ["DATE&TIME", 1, 1], 1: [output, 0, 0]}}
 
     def get_names(self):
         return self.names

@@ -45,7 +45,7 @@ class Phases:
         return self.phase
 
     def print(self, **kwargs):
-        return ["overview", self.name + ": " + self.phase]
+        return {"title": "World", 0: {"title": "Environment", 0: [self.name + ": " + self.phase, 1, 0]}}
 
     def get_name(self):
         return self.name

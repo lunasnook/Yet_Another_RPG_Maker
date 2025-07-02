@@ -7,14 +7,18 @@ import random
 from itertools import chain
 from typing import List, Any
 
-WIDTH = 99
-HEIGHT = 66
+WIDTH = 77
+HEIGHT = 50
+ASPECT_RATIO = WIDTH / HEIGHT
 OTW = WIDTH // 3
 OTH = HEIGHT // 3
 OFWS = WIDTH // 5
 OFW = (WIDTH - OFWS) // 2
 OFHS = HEIGHT // 5
 OFH = (HEIGHT - OFHS) // 2
+OSWS = WIDTH // 7
+OSHS = HEIGHT // 7
+
 
 def color_rotation_calculator(
     bg_rgb,
@@ -168,18 +172,15 @@ def color_rotation_calculator(
     if len(result_colors) < 2:
         return [(192, 192, 192), (43, 43, 43)]
     return reorder_colors_maximize_difference(result_colors)
-BG = (141, 141, 141)
-FGN = (76, 76, 76)
-FGF = (0, 0, 0)
-BGI = (141, 141, 141)
-FGNI = (76, 76, 76)
-FGFI = (0, 0, 0)
 BGL = (195, 195, 195)
 FGNL = (94, 94, 94)
 FGFL = (0, 0, 0)
 BGD = (57, 57, 57)
 FGND = (128, 128, 128)
 FGFD = (220, 220, 220)
+BG = BGL
+FGN = FGNL
+FGF = FGFL
 # ====================
 PREFERENCE1 = 'analogous'
 PREFERENCE2 = 'opposite'
@@ -191,11 +192,11 @@ COLOR_TEXT = [FGF]
 # ====================
 COLOR_PLAYER = (43, 43, 43)
 # ====================
-ALPHA = 166
+ALPHA = 220
 
 
 def alpha_print(console, y, x, string, fg=None, bg=None, alpha=ALPHA,
-                frame_width=99, frame_height=66):
+                frame_width=WIDTH, frame_height=HEIGHT):
     def color_mix(color1, color2, alpha):
         r = color2[0] / 255 * alpha / 255 + color1[0] / 255 * (1 - alpha / 255)
         g = color2[1] / 255 * alpha / 255 + color1[1] / 255 * (1 - alpha / 255)
@@ -285,6 +286,11 @@ class tcod_window:
         self.focus = index - 1
         self.need_focus[-1] = True
 
+    def get_focus(self):
+        return self.focus
+
+    def set_focus(self, index):
+        self.focus = index
 
     def get_num_frames(self):
         return self.number_of_frames
@@ -313,7 +319,7 @@ class tcod_window:
     def pop_frame(self, frame, context, console):
         original_focus = self.focus
         self.add_frame(frame)
-        self.foxus = self.number_of_frames - 1
+        self.focus = self.number_of_frames - 1
         output = self.display(context, console)
         self.remove_frame()
         self.focus = original_focus
@@ -341,6 +347,8 @@ class tcod_window:
     def display_all(self, context, console):
         console.clear()
         for i in range(self.number_of_frames):
+            if (hasattr(self.frames_in_window[i][0], "_hide")) and (self.frames_in_window[i][0]._hide):
+                continue
             self.frames_in_window[i][0].display_frame(console)
             self.frames_in_window[i][0].display(console)
         context.present(console)
@@ -356,6 +364,12 @@ class tcod_window:
                 else:
                     event_code = tcod_event(event)
                 if self.frames_in_window[self.focus][1] == "ntcod_menu":
+                    ##########
+                    if event_code == ["S", "TAB"]:
+                        self.frames_in_window[1][0].next_page()
+                        continue
+                    ##########
+
                     position = frame_obj.position
                     this_menu = frame_obj.this_menu
                     curser = frame_obj.curser
@@ -453,8 +467,19 @@ class tcod_window:
                             break
                         else:
                             if isinstance(this_menu[-1][current_key], ntcod_menu):
-                                self.add_frame(this_menu[-1][current_key], "sub_menu")
-                                sepe_way = self.display(context, console)
+                                ##########
+                                if self.focus == 2:
+                                    secondary = this_menu[-1][current_key].menu["title"]
+                                    self.frames_in_window[1][0].change_base(secondary)
+                                    self.frames_in_window[1][0].set_hide(False)
+                                ##########
+                                sepe_way = self.pop_frame(this_menu[-1][current_key], context, console)
+                                ##########
+                                ##########
+                                if self.focus == 2:
+                                    self.frames_in_window[1][0].set_hide(True)
+                                ##########
+                                ##########
                                 if sepe_way == "last_page":
                                     continue
                                 return_position = copy.deepcopy(position)
@@ -465,9 +490,8 @@ class tcod_window:
                                 return_position.append(this_menu[-1][current_key])
                             return return_position
                     if (event_code == ["N", "x"]) | (event_code == ["S", "BACKSPACE"]):
-                        if self.frames_in_window[self.focus][0].get_parent_menu() is not None:
-                            self.remove_frame("sub_menu")
-                            continue
+                        if (self.frames_in_window[self.focus][0].get_parent_menu() is not None) and (len(self.frames_in_window[self.focus][0].this_menu) == 1):
+                            return "last_page"
                         if len(this_menu) > 1:
                             position.pop()
                             this_menu.pop()
@@ -516,16 +540,19 @@ class tcod_window:
                     if event_code != "NONE":
                         if (event_code == ["N", "z"]) | (event_code == ["S", "RETURN"]):
                             return
+                        elif event_code == ["S", "TAB"]:
+                            self.frames_in_window[self.focus][0].next_page()
+                ##########
+                elif self.focus == 0:
+                    if event_code == ["S", "RETURN"]:
+                        if self.frames_in_window[2][0]._hide:
+                            self.frames_in_window[2][0].toggle_hide()
+                            self.focus = 2
 
-                if event_code == ["S", "TAB"]:
-                    for i in range(self.number_of_frames)[::-1]:
-                        if self.frames_in_window[i][1] == "ntcod_textout":
-                            self.frames_in_window[i][0].next_page()
-                            break
 
 
 class tcod_frame:
-    def __init__(self, start_y, start_x, y_span, x_span, draw_frame=True):
+    def __init__(self, start_y, start_x, y_span, x_span, draw_frame=False):
         self.start_print_y = start_y + 1
         self.start_print_x = start_x + 1
         self.start_y = start_y
@@ -542,22 +569,22 @@ class tcod_frame:
             for j in list(range(self.x_span)):
                 if self.draw_frame:
                     if ((i == 0) or (i == self.y_span - 1)) and ((j != 0) and (j != self.x_span - 1)):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2500), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='─', fg=FGF,
                                       bg=BG)
                     if ((j == 0) or (j == self.x_span - 1)) and ((i != 0) and (i != self.y_span - 1)):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2502), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='│', fg=FGF,
                                       bg=BG)
                     if (i == 0) and (j == 0):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x250C), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='┌', fg=FGF,
                                       bg=BG)
                     if (i == 0) and (j == self.x_span - 1):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2510), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='┐', fg=FGF,
                                       bg=BG)
                     if (i == self.y_span - 1) and (j == 0):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2514), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='└', fg=FGF,
                                       bg=BG)
                     if (i == self.y_span - 1) and (j == self.x_span - 1):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=chr(0x2518), fg=FGF,
+                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='┘', fg=FGF,
                                       bg=BG)
                 elif ((i == 0) | (i == self.y_span - 1)) | ((j == 0) | (j == self.x_span - 1)):
                     alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=" ", fg=FGF,
@@ -565,6 +592,78 @@ class tcod_frame:
                 if not (((i == 0) | (i == self.y_span - 1)) | ((j == 0) | (j == self.x_span - 1))):
                     alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=" ", fg=FGF,
                                   bg=BG)
+
+
+class list_of_ntcod_textout:
+    def __init__(self):
+        default_illusion = ntcod_textout(OSHS, OFWS, HEIGHT - OFHS - OSHS, WIDTH - 2 * OFWS, "", smart_page=True, show_page=True, draw_frame=False)
+        self.list_of_ntcod_textout = {"999999999": default_illusion}
+        self.based = "999999999"
+        self.hide = True
+
+    def set_hide(self, hide):
+        self.hide = hide
+
+    def get_first_levels(self):
+        return self.list_of_ntcod_textout.keys()
+
+    def change_base(self, new_base):
+        if new_base in self.list_of_ntcod_textout.keys():
+            self.based = new_base
+
+    def check_based(self, based, menu):
+        if based not in self.list_of_ntcod_textout.keys():
+            self.list_of_ntcod_textout[based] = ntcod_textout(OSHS, OFWS, HEIGHT - OFHS - OSHS, WIDTH - 2 * OFWS, "",
+                                                              smart_page=True, show_page=True, draw_frame=False)
+            menu.add_menu_item({"title": based, 0: {"title": "Navigation", 0: "next page"}}, "system")
+            menu.add_menu_item({"title": based, 0: {"title": "Navigation", 0: "go to page"}}, "system")
+
+    def add_pinned(self, key, modid):
+        self.list_of_ntcod_textout[self.based].add_pinned(key, modid)
+        return
+
+    def add_hidden(self, key, modid):
+        self.list_of_ntcod_textout[self.based].add_hidden(key, modid)
+        return
+
+    def add_text(self, page = "System", key="overview", text="", modid=None, spacing=True, middle=False):
+        self.list_of_ntcod_textout[page].add_text(text, key, modid, spacing, middle)
+        return
+
+    def clear(self):
+        default_illusion = ntcod_textout(OSHS, OFWS, HEIGHT - OFHS - OSHS, WIDTH - 2 * OFWS, "", smart_page=True,
+                                         show_page=True, draw_frame=False)
+        self.list_of_ntcod_textout = {"999999999": default_illusion}
+        self.based = "999999999"
+
+    def display(self, console):
+        if not self.hide:
+            self.list_of_ntcod_textout[self.based].display(console)
+        return
+
+    def display_frame(self, console):
+        if not self.hide:
+            self.list_of_ntcod_textout[self.based].display_frame(console)
+        return
+
+    def set_frame(self, draw_frame):
+        self.list_of_ntcod_textout[self.based].set_frame(draw_frame)
+
+    def next_page(self):
+        self.list_of_ntcod_textout[self.based].next_page()
+        return
+
+    def set_current_page(self, new_page):
+        self.list_of_ntcod_textout[self.based].set_current_page(new_page)
+        return
+
+    def get_keys(self):
+        self.list_of_ntcod_textout[self.based].get_keys()
+        return
+
+    def get_smart_pages(self):
+        self.list_of_ntcod_textout[self.based].get_smart_pages()
+        return
 
 
 class ntcod_textout(tcod_frame):
@@ -583,7 +682,7 @@ class ntcod_textout(tcod_frame):
         self.pages = {initial_page: [initial_text]}
         self.formatted = {}
         self.smart_pages = {}
-        self.pinned = [["overview", "rpgplayer"]]
+        self.pinned = []
         self.hidden = []
 
     def add_pinned(self, key, modid):
@@ -694,7 +793,11 @@ class ntcod_textout(tcod_frame):
             for this_string in self.pages[page_key]:
                 same_color = False
                 while True:
-                    if thisindex == (self.y_span - 2):
+                    if not self.show_page:
+                        height_limit = self.y_span - 2
+                    else:
+                        height_limit = self.y_span - 4
+                    if thisindex == (height_limit):
                         last_page += 1
                         thisindex = 0
                     if len(this_string) > self.x_span - 2:
@@ -728,17 +831,24 @@ class ntcod_textout(tcod_frame):
         return formatted
 
     def display(self, console):
-        self.index = 0
+        if not self.show_page:
+            self.index = 0
+        else:
+            self.index = 2
         color_rotation = COLOR_TEXT
         color_index = -1
 
         self.formatted = self.format()
         if self.current_page not in self.formatted.keys():
             self.current_page = "overview"
+
+        first_page = True
+        already_length = 0
+        tstart_x = self.start_print_x - 1
+
         for this_string in self.formatted[self.current_page]:
-            if not self.show_page:
-                if this_string[0] == "Page " + self.current_page:
-                    continue
+            if this_string[0] == "Page " + self.current_page:
+                continue
             if not this_string[1]:
                 color_index += 1
             if color_index == len(color_rotation):
@@ -747,18 +857,119 @@ class ntcod_textout(tcod_frame):
                           string=this_string[0], fg=color_rotation[color_index])
             self.index += 1
 
+        def get_content_to_display(page, tab_rot):
+            if page == self.current_page:
+                color = FGF
+            else:
+                color = FGN
+
+            if page == self.current_page:
+                tab_string1 = '┌' + '─' * len(page) + '┐'
+                tab_string2 = '│' + page + '│'
+            else:
+                if list(self.formatted).index(page) < list(self.formatted).index(self.current_page):
+                    tab_string1 = '┌' + '─' * len(page)
+                    tab_string2 = '│' + page
+                else:
+                    tab_string1 = '─' * len(page) + '┐'
+                    tab_string2 = page + '│'
+            if page == self.current_page:
+                tab_string3 = '┘' + ' ' * len(page) + '└'
+            else:
+                if tab_rot == 0:
+                    tab_string3 = '─' + '─' * len(page)
+                elif tab_rot == len(self.formatted.keys()) - 1:
+                    tab_string3 = '─' * len(page) + '─'
+                else:
+                    tab_string3 = '─' * (len(page) + 2)
+
+            return [color, tab_string1, tab_string2, tab_string3]
+
+        # --------- 绘制页签（保证 current_page 可见） ---------
+        if self.show_page:
+            pages = list(self.formatted.keys())
+            cur_idx = pages.index(self.current_page)
+
+            # 计算从 0 到 current_page（含）所需宽度
+            length_to_current = 0
+            for i in range(cur_idx + 1):
+                length_to_current += len(get_content_to_display(pages[i], i)[1])
+
+            # ---------- 情况一：current_page 本来就能完全显示 ----------
+            if length_to_current <= self.x_span:
+                already_length = 0
+                first_page = True
+                for tab_rot, page in enumerate(pages):
+                    color, t1, t2, t3 = get_content_to_display(page, tab_rot)
+
+                    # 超宽则按旧方案在右侧截断
+                    if not first_page and already_length + len(t1) >= self.x_span:
+                        alpha_print(console, y=self.start_print_y - 1,
+                                    x=tstart_x + already_length,
+                                    string=(self.x_span - already_length - 1) * '─' + '┐', fg=FGN)
+                        alpha_print(console, y=self.start_print_y,
+                                    x=tstart_x + already_length,
+                                    string=(self.x_span - already_length - 1) * '•' + '│', fg=FGN)
+                        alpha_print(console, y=self.start_print_y + 1,
+                                    x=tstart_x + already_length,
+                                    string=(self.x_span - already_length - 1) * '─' + '─', fg=FGF)
+                        break
+
+                    # 正常绘制
+                    alpha_print(console, y=self.start_print_y - 1, x=tstart_x + already_length, string=t1, fg=color)
+                    alpha_print(console, y=self.start_print_y, x=tstart_x + already_length, string=t2, fg=color)
+                    alpha_print(console, y=self.start_print_y + 1, x=tstart_x + already_length, string=t3, fg=FGF)
+                    if tab_rot == len(pages) - 1:
+                        alpha_print(console, y=self.start_print_y + 1, x=tstart_x + already_length + len(t1), string='─' * (self.x_span - already_length - len(t1)), fg=FGF)
+                    already_length += len(t1)
+                    first_page = False
+
+
+            # ---------- 情况二：current_page 超出右边界，需要回溯 ----------
+            else:
+                # 1) 从 current_page 往前收集，直到放不下为止
+                chosen = []  # 逆序收集，随后再翻转
+                used_len = 0
+                for idx in range(cur_idx, -1, -1):
+                    pg = pages[idx]
+                    seg_len = len(get_content_to_display(pg, idx)[1])
+                    if used_len + seg_len > self.x_span:
+                        break
+                    chosen.append(pg)
+                    used_len += seg_len
+                chosen.reverse()  # 左→右顺序
+
+                # 2) 计算左侧占位区长度，并用 • 填充
+                left_pad = self.x_span - used_len
+                current_x = tstart_x
+                if pages.index(chosen[0]) > 0 and left_pad > 0:
+                    alpha_print(console, y=self.start_print_y - 1,
+                                x=current_x, string='┌' + '─' * (left_pad - 1), fg=FGN)
+                    alpha_print(console, y=self.start_print_y,
+                                x=current_x, string='│' + '•' * (left_pad - 1), fg=FGN)
+                    alpha_print(console, y=self.start_print_y + 1,
+                                x=current_x, string='─' + '─' * (left_pad - 1), fg=FGF)
+                    current_x += left_pad
+
+                # 3) 绘制收集到的标签
+                for pg in chosen:
+                    pg_idx = pages.index(pg)
+                    color, t1, t2, t3 = get_content_to_display(pg, pg_idx)
+                    alpha_print(console, y=self.start_print_y - 1, x=current_x, string=t1, fg=color)
+                    alpha_print(console, y=self.start_print_y, x=current_x, string=t2, fg=color)
+                    alpha_print(console, y=self.start_print_y + 1, x=current_x, string=t3, fg=FGF)
+                    current_x += len(t1)
+        # ----------------------------------------------------------------
+
     def next_page(self):
-        found = False
         thislist = list(self.get_keys())
-        thislist.sort()
-        for page in thislist:
-            if found:
-                self.set_current_page(page)
-                break
-            if page == self.get_current_page():
-                if page == thislist[-1]:
+        for i in range(len(thislist)):
+            if thislist[i] == self.get_current_page():
+                if i == len(thislist) - 1:
                     self.set_current_page(thislist[0])
-                found = True
+                else:
+                    self.set_current_page(thislist[i + 1])
+                return
 
     def get_current_page(self):
         return self.current_page
@@ -771,11 +982,11 @@ class ntcod_textout(tcod_frame):
 
     def get_smart_pages(self):
         return self.smart_pages
-BACKGROUND = ntcod_textout(-1, -1, HEIGHT+2, WIDTH+2, "", False, "", draw_frame=True)
+BACKGROUND = ntcod_textout(-1, -1, HEIGHT+2, WIDTH+2, "", False, "")
 
 
 class ntcod_menu(tcod_frame):
-    def __init__(self, start_y, start_x, y_span, x_span, draw_frame=True, title="Choose Action", parent_menu=None, force_num_col=None):
+    def __init__(self, start_y, start_x, y_span, x_span, draw_frame=True, title="Choose Action", parent_menu=None, force_num_col=None, hide=False):
         super().__init__(start_y, start_x, y_span, x_span, draw_frame=draw_frame)
         self.parent_menu = parent_menu
         self.title = title
@@ -783,6 +994,7 @@ class ntcod_menu(tcod_frame):
         self.text_span = x_span - 4
         self.texty_span = y_span - 4
         self.force_num_col = force_num_col
+        self._hide = hide
 
         self.choice = 0
         if parent_menu is not None:
@@ -801,6 +1013,12 @@ class ntcod_menu(tcod_frame):
         self.full_layout = None
         self.max_rows = self.texty_span // 2
         self.managed_layout = copy.deepcopy(self.full_layout)
+
+    def get_hide(self):
+        return self._hide
+
+    def toggle_hide(self):
+        self._hide = not self._hide
 
     def get_title(self):
         return self.title
@@ -958,18 +1176,29 @@ class ntcod_menu(tcod_frame):
             # patch_numeric_keys(item, from_mod)
             dict_title = item["title"]
 
-            sub_menu = ntcod_menu(self.start_y, self.start_x, self.y_span, self.x_span, title=dict_title, draw_frame=self.draw_frame, parent_menu=self.title)
-            sub_menu.set_direct_menu(item)
-            self.menu[self.index] = sub_menu
+            found = False
+            index = -1
+            for mitem in list(self.menu.keys()):
+                if isinstance(self.menu[mitem], ntcod_menu):
+                    if self.menu[mitem].menu["title"] == dict_title:
+                        found = True
+                        index = mitem
+                        break
+            if not found:
+                sub_menu = ntcod_menu(self.start_y, self.start_x, self.y_span, self.x_span, title=dict_title, draw_frame=self.draw_frame, parent_menu=self.title)
+                sub_menu.set_direct_menu(item, from_mod, False)
+                self.menu[self.index] = sub_menu
+                self.index += 1
+            else:
+                self.menu[mitem].set_direct_menu(item, from_mod, False)
 
             label_length = len(f"[{dict_title}]")
         else:
             self.menu[self.index] = [item, from_mod]
             label_length = len(f"[{item[0]}]")
+            self.index += 1
 
         self._cur_line_width += label_length + self._spacing
-
-        self.index += 1
         out = self.main_logic(self.menu)
         self.thisin_menu = out[0]
         levels = len(self.this_menu)
@@ -985,11 +1214,12 @@ class ntcod_menu(tcod_frame):
         self.col_widths = out[3]
 
 
-    def set_direct_menu(self, new_menu):
-        self.clear()
+    def set_direct_menu(self, new_menu, from_mod="system", clear=True):
+        if clear:
+            self.clear()
         for item in new_menu.keys():
             if item != "title":
-                self.add_menu_item(new_menu[item], "system")
+                self.add_menu_item(new_menu[item], from_mod)
 
     def clear(self):
         for i in list(self.menu.keys()):

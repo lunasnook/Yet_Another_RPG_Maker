@@ -1,6 +1,6 @@
 from yapsy.IPlugin import IPlugin
 from Library import UI
-from Library.UI import OTH, OTW, OFH, OFW, OFHS, OFWS, HEIGHT
+from Library.UI import OTH, OTW, OFH, OFW, OFHS, OFWS, HEIGHT, OSHS, WIDTH
 
 
 class RPGPlayer_Plugin(IPlugin):
@@ -38,6 +38,14 @@ class RPGPlayer:
         return
 
     def update(self, **kwargs) -> None:
+        if self.posi_y < 0:
+            self.posi_y = 0
+        if self.posi_y >= self.height:
+            self.posi_y = self.height - 1
+        if self.posi_x < 0:
+            self.posi_x = 0
+        if self.posi_x >= self.width:
+            self.posi_x = self.width - 1
         if not self.name_entered:
             self.current_tile = kwargs["window"].get(0)[0]
             self.current_tile.set_player(self)
@@ -52,6 +60,8 @@ class RPGPlayer:
             self.height = self.maps[0].get_height()
             self.width = self.maps[0].get_width()
             self.positions.append((0,0))
+            self.posi_y = 0
+            self.posi_x = 0
 
         if not self.player_added:
             self.icon = UI.ntcod_entity(self.image, tuple(self.color), self.posi_y, self.posi_x, tilewindow=self.current_tile, modid="player")
@@ -63,7 +73,7 @@ class RPGPlayer:
         return
 
     def print(self, **kwargs):
-        return ["overview", ["Welcome " + self.get_name(), ["your coordinate: " + str(self.get_position()[0]) + ", " + str(self.get_position()[1]), 0, 0]]]
+        return {"title": "System", 0: {"title": "overview", 0: ["Welcome " + self.get_name(), 1, 0], 1: ["your coordinate: " + str(self.get_position()[0]) + ", " + str(self.get_position()[1]), 0, 0]}}
 
     def get_actions(self, **kwargs):
         this_actions = ["toggle entity view", "Rest", "Move North", "Move East", "Move South", "Move West"]
@@ -71,7 +81,10 @@ class RPGPlayer:
             this_actions.append("Enter Map")
         if len(self.positions) > 1:
             this_actions.append("Exit Map")
-        return this_actions
+        return_dict = {"title": "Misc.", 0: {"title": "Movement"}}
+        for i in range(len(this_actions)):
+            return_dict[0][i] = this_actions[i]
+        return return_dict
 
     def act_on_action(self, **kwargs):
         self.height = self.maps[-1].get_height()
@@ -84,29 +97,25 @@ class RPGPlayer:
         code = ""
         varss = 1
         if action == "Move North":
-            if self.posi_y != 0:
-                self.posi_y = self.posi_y - 1
-                code = "1f"
-            else:
-                code = "0t"
+            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True), context,
+                                     console)
+            self.posi_y = self.posi_y - varss
+            code = "varssf"
         elif action == "Move South":
-            if self.posi_y != self.height-1:
-                self.posi_y = self.posi_y + 1
-                code = "1f"
-            else:
-                code = "0t"
+            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True), context,
+                                     console)
+            self.posi_y = self.posi_y + varss
+            code = "varssf"
         elif action == "Move West":
-            if self.posi_x != 0:
-                self.posi_x = self.posi_x - 1
-                code = "1f"
-            else:
-                code = "0t"
+            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True), context,
+                                     console)
+            self.posi_x = self.posi_x - varss
+            code = "varssf"
         elif action == "Move East":
-            if self.posi_x != self.width-1:
-                self.posi_x = self.posi_x + 1
-                code = "1f"
-            else:
-                code = "0t"
+            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True), context,
+                                     console)
+            self.posi_x = self.posi_x + varss
+            code = "varssf"
         elif action == "Rest":
             varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "rest for [0-9]", True), context, console)
             code = "varssf"
@@ -124,7 +133,7 @@ class RPGPlayer:
                     choice = i
                     break
             self.player_added = False
-            self.current_tile = UI.ntcod_tile(OFH, OTW, HEIGHT - 2 * OFH, OTW, self, True)
+            self.current_tile = UI.ntcod_tile(OSHS, OFWS, HEIGHT - OFHS - OSHS, WIDTH - 2 * OFWS, self, True)
             self.tiles.append(self.current_tile)
             window.add_frame(self.current_tile, change_focus=False,frameid="rpgplayer_submap" )
 
@@ -157,10 +166,24 @@ class RPGPlayer:
             else:
                 self.current_view = self.view_mods[list(self.view_mods.keys())[list(self.view_mods.values()).index(self.current_view)]+1]
             code = "0t"
+
+        lag = 0
+        if self.posi_y < 0:
+            lag = 0 - self.posi_y
+            self.posi_y = 0
+        if self.posi_y >= self.height:
+            lag = self.posi_y - self.height + 1
+            self.posi_y = self.height - 1
+        if self.posi_x < 0:
+            lag = 0 - self.posi_x
+            self.posi_x = 0
+        if self.posi_x >= self.width:
+            lag = self.posi_x - self.width + 1
+            self.posi_x = self.width - 1
         if len(self.positions) == 1:
             self.positions[0] = (self.posi_y, self.posi_x)
         if code == "varssf":
-            return [varss, False]
+            return [varss - lag, False]
         else:
             if code[1] == "f":
                 return [float(code[0]), False]

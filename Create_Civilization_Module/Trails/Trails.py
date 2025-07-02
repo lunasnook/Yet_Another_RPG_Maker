@@ -79,7 +79,7 @@ class Trails:
                                 elif ((path[i-1][1] > path[i][1]) and (path[i+1][1] < path[i][1])) or ((path[i-1][1] < path[i][1]) and (path[i+1][1] > path[i][1])):
                                     trail_icon = UI.ntcod_entity("─", self.icon_color, path[i][0], path[i][1], kwargs["window"].get(0)[0], self.id, False)
                                 elif ((path[i-1][0] > path[i][0]) and (path[i+1][1] > path[i][1])) or ((path[i-1][1] > path[i][1]) and (path[i+1][0] > path[i][0])):
-                                    trail_icon = UI.ntcod_entity("┌", self.icon_color, path[i][0], path[i][1], kwargs["window"].get(0)[0], self.id, False)
+                                    trail_icon = UI.ntcod_entity('┌', self.icon_color, path[i][0], path[i][1], kwargs["window"].get(0)[0], self.id, False)
                                 elif ((path[i-1][0] > path[i][0]) and (path[i+1][1] < path[i][1])) or ((path[i-1][1] < path[i][1]) and (path[i+1][0] > path[i][0])):
                                     trail_icon = UI.ntcod_entity("┐", self.icon_color, path[i][0], path[i][1], kwargs["window"].get(0)[0], self.id, False)
                                 elif ((path[i-1][0] < path[i][0]) and (path[i+1][1] > path[i][1])) or ((path[i-1][1] > path[i][1]) and (path[i+1][0] < path[i][0])):
@@ -94,8 +94,7 @@ class Trails:
         return
 
     def print(self, **kwargs): # None or list[page, content]
-        self.added = True
-        return ["path", str(self.valid_paths)]
+        return
 
     def get_actions(self, **kwargs): # None or list[actions...]
         return

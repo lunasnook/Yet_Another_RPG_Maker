@@ -6,7 +6,7 @@ from Library import UI
 from Library import IO
 import copy
 
-from Library.UI import OFW, WIDTH, OFH, HEIGHT, OTH, OTW, OFHS, OFWS
+from Library.UI import OFW, WIDTH, OFH, HEIGHT, OTH, OTW, OFHS, OFWS, OSWS, OSHS
 
 
 def main_update(action_time, local_map: Main_Menu.Create_World_State.MapData, peoples: Main_Menu.Create_Civilization_State.PopulationData, mods: dict, context: tcod.context.new_terminal, console: tcod.console.Console, window: UI.tcod_window) -> list:
@@ -63,39 +63,51 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
         maintile = UI.ntcod_tile(0, 0, HEIGHT, WIDTH)
         local_map.set_default_screen_to_tile(maintile)
 
-        mainout = UI.ntcod_textout(OFHS, OFWS, HEIGHT - 2 * OFHS, WIDTH - 2 * OFWS, initial_text, smart_page=True, show_page=True)
-        mainmenu = UI.ntcod_menu(HEIGHT - 6, OFWS, 8, WIDTH - 2 * OFWS, title="Select an option")
+        mainout = UI.list_of_ntcod_textout()
+        mainmenu = UI.ntcod_menu(HEIGHT - 5, 0, 6, WIDTH, title="Options", draw_frame=False, hide=True)
         window = UI.tcod_window(maintile, mainout, mainmenu)
+        window.set_focus(0)
     action_time, elapse_time = main_update(1, local_map, peoples, mods, context, console, window)
     while True:
         console.clear()
         mainout.clear()
         mainmenu.clear()
-
+        mainout.check_based("System", mainmenu)
+        mainout.change_base("System")
+        mainout.add_text(
+            page="System",
+            text=action_time + ' in-game time took ' + elapse_time.split(".")[0] + "." + elapse_time.split(".")[1][0:5] + ' seconds',
+            modid="system")
         for mod in list(mods.keys()):
             textoutput = mods[mod].print(map=local_map, peoples=peoples, mods=mods)
             if textoutput is not None:
-                content = textoutput[1]
-                page = textoutput[0]
-                if isinstance(content, str):
-                    mainout.add_text(content, page, mod)
-                else:
-                    for this_string in content:
-                        if isinstance(this_string, str):
-                            mainout.add_text(this_string, page, mod)
-                        else:
-                            mainout.add_text(this_string[0], page, mod, spacing=this_string[1], middle=this_string[2])
-        mainout.add_text(action_time + ' in-game time took ' + elapse_time.split(".")[0] + "." + elapse_time.split(".")[1][0:5] + ' seconds', "overview", "system")
-        mainmenu.add_menu_item("next page", "system")
-        mainmenu.add_menu_item("go to page", "system")
-        mainmenu.add_menu_item("pin unpin section", "system")
-        mainmenu.add_menu_item("hide unhide section", "system")
+                mainout.check_based(textoutput["title"], mainmenu)
+                for i in textoutput.keys():
+                    if i == "title":
+                        page = textoutput[i]
+                    else:
+                        key = None
+                        for j in textoutput[i].keys():
+                            if j == "title":
+                                key = textoutput[i][j]
+                            else:
+                                mainout.add_text(page=page, key=key, text=textoutput[i][j][0], modid=mod, spacing=textoutput[i][j][1], middle=textoutput[i][j][2])
+
+        # mainmenu.add_menu_item({"title": "System", 0: {"title": "Navigation", 0: "pin unpin section"}}, "system")
+        # mainmenu.add_menu_item({"title": "System", 0: {"title": "Navigation", 0: "hide unhide section"}}, "system")
         for mod in list(mods.keys()):
             this_list = mods[mod].get_actions(map=local_map, peoples=peoples, mods=mods, window=window, context=context, console=console)
-            if not (this_list is None):
-                for action in this_list:
-                    mainmenu.add_menu_item(action, mod)
+            if this_list is not None:
+                mainmenu.add_menu_item(this_list, mod)
+        for first in mainout.get_first_levels():
+            ifound = False
+            for nmenu in mainmenu.menu.keys():
+                if isinstance(mainmenu.menu[nmenu], UI.ntcod_menu) and (mainmenu.menu[nmenu].title == first):
+                    ifound = True
+            if (not ifound) and (first != "999999999"):
+               mainout.check_based(first, mainmenu)
         mainmenu.add_menu_item("Save and Quit", "system")
+        mainmenu.add_menu_item("Close Menu", "system")
 
 
         choice = window.display(context, console)
@@ -149,8 +161,15 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
                 IO.save_object_to_file("Continue/", "gameplay", "gameplay", gameplay, False)
                 IO.save_object_to_file("Continue/", "window", "window", window, False)
                 return
+            elif choice[-1][0] == "Close Menu":
+                if not mainmenu._hide:
+                    mainmenu.toggle_hide()
+                    window.set_focus(0)
         else:
             actions, menu = mods[choice[-1][1]].act_on_action(action=choice, map=local_map, peoples=peoples, mods=mods, window=window, context=context, console=console)
             del choice[-1]
             if not menu:
                 action_time, elapse_time = main_update(actions, local_map, peoples, mods, context, console, window)
+            # window.set_focus(0)
+            # if not mainmenu._hide:
+            #     mainmenu.toggle_hide()

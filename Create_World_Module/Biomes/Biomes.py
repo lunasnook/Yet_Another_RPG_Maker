@@ -117,11 +117,7 @@ class Biomes:
 
     def print(self, **kwargs):
         if "rpgplayer" in list(kwargs["mods"].keys()):
-            return ["overview",
-                    "biome: " +
-                    self.get_biomename(kwargs["map"].get_attribute_at(self.id,
-                                                                      kwargs["mods"]["rpgplayer"].get_position()[0],
-                                                                      kwargs["mods"]["rpgplayer"].get_position()[1]))]
+            return {"title": "World", 0: {"title": "Environment", 0: ["biome: " + self.get_biomename(kwargs["map"].get_attribute_at(self.id, kwargs["mods"]["rpgplayer"].get_position()[0], kwargs["mods"]["rpgplayer"].get_position()[1])), 1, 0]}}
 
     def get_biomesout(self):
         return self.biomesout

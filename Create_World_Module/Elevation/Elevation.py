@@ -23,11 +23,10 @@ class Elevation:
 
     def print(self, **kwargs):
         if "rpgplayer" in list(kwargs["mods"].keys()):
-            return ["overview",
-                    "elevation: " +
+            return {"title": "World", 0: {"title": "Environment", 0: ["elevation: " +
                     str(int(kwargs["map"].get_attribute_at(self.id,
                                                            kwargs["mods"]["rpgplayer"].get_position()[0],
-                                                           kwargs["mods"]["rpgplayer"].get_position()[1]))) + " meters"]
+                                                           kwargs["mods"]["rpgplayer"].get_position()[1]))) + " meters",  1, 0]}}
 
     def get_actions(self, **kwargs):
         return

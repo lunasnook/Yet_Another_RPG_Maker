@@ -149,11 +149,11 @@ class Markov_Weather:
             posi_x = mods["rpgplayer"].get_position()[1]
             posi_y = mods["rpgplayer"].get_position()[0]
             local_condition = kwargs["map"].get_attribute_at(self.category, posi_y, posi_x)
-            return ["overview", self.category + ": " + self.types[local_condition] + ", changed " + \
-                    str(self.counter) + " times"]
+            return {"title": "World", 0: {"title": "Environment", 0: [self.category + ": " + self.types[local_condition] + ", changed " + \
+                    str(self.counter) + " times", 1, 0]}}
 
     def get_actions(self, **kwargs):
-        return ["toggle weather view"]
+        return {"title": "World", 0: {"title": "Environment", 0: "toggle weather view"}}
 
     def act_on_action(self, **kwargs):
         if kwargs["action"][-1][0] == "toggle weather view":
