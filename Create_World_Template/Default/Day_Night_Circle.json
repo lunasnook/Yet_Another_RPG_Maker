@@ -12,7 +12,7 @@
   "begin_set" : 0.5,
   "end_set" : 0.625,
   "color_blend": true,
-  "color": [13, 39, 89],
-  "max_alpha" : 200,
+  "color": [0, 16, 40],
+  "max_alpha" : 220,
   "color_id" : "day_night"
 }

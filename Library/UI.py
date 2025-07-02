@@ -192,7 +192,7 @@ COLOR_TEXT = [FGF]
 # ====================
 COLOR_PLAYER = (43, 43, 43)
 # ====================
-ALPHA = 200
+ALPHA = 220
 
 
 def alpha_print(console, y, x, string, fg=None, bg=None, alpha=ALPHA,

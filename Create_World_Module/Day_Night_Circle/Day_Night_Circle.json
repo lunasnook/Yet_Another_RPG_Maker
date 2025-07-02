@@ -1,7 +1,7 @@
 {
   "id": "day_night_circle",
   "Module": "Day_Night_Circle",
-  "Require": ["timeline"],
+  "Require": ["timeline", "biomes"],
   "circle_level_index": 0,
   "name_of_value": "sun_light",
   "reverse_direction" : false,
@@ -11,8 +11,8 @@
   "end_rise" : 0.125,
   "begin_set" : 0.5,
   "end_set" : 0.625,
-  "color_blend": false,
-  "color": [0, 0, 0],
-  "max_alpha" : 255,
+  "color_blend": true,
+  "color": [0, 16, 40],
+  "max_alpha" : 220,
   "color_id" : "day_night"
 }
