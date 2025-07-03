@@ -64,6 +64,11 @@ class Settlements:
         self.town_map_id = obj["town_map_id"]
         self.player_id = obj["player_id"]
         self.simulation_id = obj["simulation_id"]
+        self.night_id = obj["night_id"]
+        self.night_color_id = obj["night_color_id"]
+        self.light = tuple(obj["light"])
+
+        self.settlement_icons = []
 
         return
 
@@ -82,7 +87,7 @@ class Settlements:
                             if not (j, k) in list(self.positions.values()):
                                 break
                     self.positions[i] = [j, k]
-                    settlement_icon = UI.ntcod_entity(self.icononmap, self.icon_color, j, k, kwargs["window"].get(0)[0], self.name)
+                    self.settlement_icons.append(UI.ntcod_entity(self.icononmap, self.icon_color, j, k, kwargs["window"].get(0)[0], self.name))
                     if ((self.town_map_id in kwargs["mods"].keys()) and (self.simulation_id in kwargs["mods"].keys())) and kwargs["mods"][self.simulation_id].get_simulated():
                         this_families = kwargs["mods"][self.simulation_id].get_families()
                         submap = kwargs["mods"][self.town_map_id].generate_town_map(this_families, i, kwargs["mods"][self.noise_id])
@@ -95,13 +100,15 @@ class Settlements:
                         submap.set_default_screen(defaultscreen)
                         self.maps.set_submap(j, k, self.settlement_name[i], self.id, submap)
             self.initialized = True
-            # elif ((self.town_map_id in kwargs["mods"].keys()) and (self.simulation_id in kwargs["mods"].keys())) and kwargs["mods"][self.simulation_id].get_simulated():
-            #         for i in range(self.sum(self.statistics > 0)):
-            #             j = self.positions[i][0]
-            #             k = self.positions[i][1]
-            #             this_families = kwargs["mods"][self.simulation_id].get_families()
-            #             submap = kwargs["mods"][self.town_map_id].generate_town_map(this_families, i, kwargs["mods"][self.noise_id])
-            #            self.maps.set_submap(j, k, self.settlement_name[i], self.id, submap)
+        if self.night_id in kwargs["mods"].keys():
+            for i in range(self.max_num_settlements):
+                if self.statistics[i] != 0:
+                    if kwargs["map"].get_attribute_at(self.night_color_id, self.positions[i][0], self.positions[i][1]) == 0:
+                        self.settlement_icons[i].update_color(self.light)
+                        self.settlement_icons[i].no_color_layer = True
+                        # self.settlement_icons[i].tilewindow.color_layers.dig_hole_in_layer("day_night", self.positions[i][0], self.positions[i][1], 1, 1, 110, self.settlement_name[i] + "_nightlight")
+                    else:
+                        self.settlement_icons[i].no_color_layer = False
         return
 
     def get_statistics(self):

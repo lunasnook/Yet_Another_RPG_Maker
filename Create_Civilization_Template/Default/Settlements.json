@@ -68,5 +68,8 @@
   "town_map_id": "town_map",
   "player_id": "rpgplayer",
   "simulation_id": "backsimulation",
-  "noise_id": "moisture"
+  "noise_id": "moisture",
+  "night_id": "day_night_circle",
+  "night_color_id": "sun_light",
+  "light": [213, 203, 0]
 }

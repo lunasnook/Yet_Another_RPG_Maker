@@ -4,7 +4,8 @@ import copy
 from yapsy.IPlugin import IPlugin
 from scipy.ndimage import uniform_filter
 from scipy.stats import mode
-
+import Library.UI
+from Library import UI
 from Library.UI import FGN
 
 
@@ -159,5 +160,5 @@ class Markov_Weather:
         if kwargs["action"][-1][0] == "toggle weather view":
             kwargs["window"].get(0)[0].toggle_show_key(self.cloudid)
             kwargs["window"].get(0)[0].render_color_blend()
-            kwargs["context"].present(kwargs["console"])
+            UI.CONTEXT.present(UI.CONSOLE)
         return [0, True]

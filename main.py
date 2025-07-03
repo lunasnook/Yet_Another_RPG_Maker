@@ -31,17 +31,17 @@ main_menu = {
 }
 
 
-def function_map(context: tcod.context.new_terminal, root_console: tcod.console.Console, choice: list) -> None:
+def function_map(choice: list) -> None:
     if choice[-1][0] == 'Continue':
-        Play.play(context, root_console, continue_game=True)
+        Play.play(continue_game=True)
     elif choice[-1][0] == 'Create World':
-        Create_World_State.main(context, root_console)
+        Create_World_State.main()
     elif choice[-1][0] == 'Create Civilization':
-        Create_Civilization_State.main(context, root_console)
+        Create_Civilization_State.main()
     elif choice[-1][0] == 'Create Gameplay':
-        Create_Gameplay_State.main(context, root_console)
+        Create_Gameplay_State.main()
     elif choice[-1][0] == 'Play':
-        Play.play(context, root_console)
+        Play.play()
     elif choice[-1][0] == "Light Theme(Default)":
         UI.BG = UI.BGL
         UI.FGN = UI.FGNL
@@ -94,11 +94,13 @@ def main() -> None:
         tcod.lib.SDL_SetWindowMaximumSize(window_p, UI.WIDTH * 200, UI.HEIGHT * 200)
         tcod.lib.SDL_SetWindowAspectRatio(window_p, UI.ASPECT_RATIO, UI.ASPECT_RATIO)
 
+        UI.CONTEXT = context
+        UI.CONSOLE = root_console
 
         while True:
-            root_console.clear()
-            choice = window.display(context, root_console)
-            function_map(context, root_console, choice)
+            UI.CONSOLE.clear()
+            choice = window.display()
+            function_map(choice)
 
 
 if __name__ == '__main__':

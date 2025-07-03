@@ -3,6 +3,8 @@ import copy
 import numpy
 from yapsy.IPlugin import IPlugin
 
+from Library import UI
+
 
 class Day_Night_Circle_Plugin(IPlugin):
     def initialize(self, **kwargs):
@@ -93,5 +95,5 @@ class Day_Night_Circle:
         if kwargs["action"][-1][0] == "toggle day night":
             kwargs["window"].get(0)[0].toggle_show_key(self.color_id)
             kwargs["window"].get(0)[0].render_color_blend()
-            kwargs["context"].present(kwargs["console"])
+            UI.CONTEXT.present(UI.CONSOLE)
         return [0, True]

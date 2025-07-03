@@ -12,7 +12,7 @@ from Library.UI import OFW, WIDTH, OFH, HEIGHT, OTH, OTW, OFHS, OFWS, OSWS, OSHS
 processing_info = UI.ntcod_textout(OTH, OTW, OTH, OTW, "system processing...", False)
 
 
-def main_update(action_time, local_map: Main_Menu.Create_World_State.MapData, peoples: Main_Menu.Create_Civilization_State.PopulationData, mods: dict, context: tcod.context.new_terminal, console: tcod.console.Console, window: UI.tcod_window) -> list:
+def main_update(action_time, local_map: Main_Menu.Create_World_State.MapData, peoples: Main_Menu.Create_Civilization_State.PopulationData, mods: dict, window: UI.tcod_window) -> list:
     start_operation = time.time()
     action_time = action_time
     for mod in mods:
@@ -20,17 +20,17 @@ def main_update(action_time, local_map: Main_Menu.Create_World_State.MapData, pe
         processing_info.clear()
         processing_info.add_text("for " + this_time.split(".")[0] + "." + this_time.split(".")[1][0:5] + ' seconds')
         processing_info.add_text("current mod: " + mod)
-        window.display_all(context, console)
+        window.display_all()
         if mod == "timeline":
             mods[mod].update(action_time=action_time)
         else:
-            mods[mod].update(map=local_map, peoples=peoples, mods=mods, context=context, console=console, window=window)
+            mods[mod].update(map=local_map, peoples=peoples, mods=mods, window=window)
     window.get(0)[0].render_color_blend()
     end_operation = time.time()
     return [str(action_time), str(end_operation - start_operation)]
 
 
-def play(context: tcod.context.new_terminal, console: tcod.console.Console, continue_game = False) -> None:
+def play(continue_game = False) -> None:
     mod_manager = PluginManager()
     mod_manager.setPluginPlaces(["Create_World_Module/", "Create_Civilization_Module/", "Create_Gameplay_Module/"])
     mod_manager.collectPlugins()
@@ -75,9 +75,9 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
         mainmenu = UI.ntcod_menu(HEIGHT - 5, 0, 6, WIDTH, title="Options", draw_frame=False, hide=True)
         window = UI.tcod_window(maintile, mainout, mainmenu)
         window.set_focus(0)
-    action_time, elapse_time = main_update(1, local_map, peoples, mods, context, console, window)
+    action_time, elapse_time = main_update(1, local_map, peoples, mods, window)
     while True:
-        console.clear()
+        UI.CONSOLE.clear()
         mainout.clear()
         mainmenu.clear()
         mainout.check_based("System", mainmenu)
@@ -103,7 +103,7 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
             modid="system")
 
         for mod in list(mods.keys()):
-            this_list = mods[mod].get_actions(map=local_map, peoples=peoples, mods=mods, window=window, context=context, console=console)
+            this_list = mods[mod].get_actions(map=local_map, peoples=peoples, mods=mods, window=window)
             if this_list is not None:
                 if isinstance(this_list, dict):
                     mainmenu.add_menu_item(this_list, mod)
@@ -121,8 +121,8 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
         mainmenu.add_menu_item("Close Menu", "system")
 
         window.remove_frame("system_processing")
-        window.display_all(context, console)
-        choice = window.display(context, console)
+        window.display_all()
+        choice = window.display()
 
         if choice == "last_page":
             continue
@@ -132,7 +132,7 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
             elif choice[-1][0] == "go to page":
                 thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,  "overview",
                                                "go to page [A-Z,a-z,0-9,' ']", False)
-                whichpage = window.pop_frame(thisin, context, console)
+                whichpage = window.pop_frame(thisin)
                 if (window.get(1)[0].get_keys() is not None) and (whichpage in list(window.get(1)[0].get_keys())):
                     window.get(1)[0].set_current_page(whichpage)
 
@@ -147,12 +147,12 @@ def play(context: tcod.context.new_terminal, console: tcod.console.Console, cont
                     mainmenu.toggle_hide()
                     window.set_focus(0)
         else:
-            actions, menu = mods[choice[-1][1]].act_on_action(action=choice, map=local_map, peoples=peoples, mods=mods, window=window, context=context, console=console)
+            actions, menu = mods[choice[-1][1]].act_on_action(action=choice, map=local_map, peoples=peoples, mods=mods, window=window)
             del choice[-1]
             if not menu:
                 window.add_frame(processing_info,"system_processing", change_focus=False)
-                window.display_all(context, console)
-                action_time, elapse_time = main_update(actions, local_map, peoples, mods, context, console, window)
+                window.display_all()
+                action_time, elapse_time = main_update(actions, local_map, peoples, mods, window)
             # window.set_focus(0)
             # if not mainmenu._hide:
             #     mainmenu.toggle_hide()

@@ -87,14 +87,14 @@ create_civilization_menu = {
 }
 
 
-def output_function_map(context: tcod.context.new_terminal, console: tcod.console.Console, choice: list, output: dict, window: UI.tcod_window) -> dict:
+def output_function_map(choice: list, output: dict, window: UI.tcod_window) -> dict:
     if choice[-1][0] == "Name Civilization To Create":
         thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,   output["civilization_name"], "civilization name[A-Z,a-z,0-9,' ']", False)
-        output["civilization_name"] = window.pop_frame(thisin, context, console)
+        output["civilization_name"] = window.pop_frame(thisin)
     elif choice[-1][0] == "Set The Number of People":
         thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,   output["number"],
                                        "number of people [0-9]", True)
-        output["number"] = window.pop_frame(thisin, context, console)
+        output["number"] = window.pop_frame(thisin)
     elif choice[-1][0] == 'Continue To Mods':
         output["continue"] = True
     return output
@@ -108,21 +108,21 @@ deoutput = {
 }
 
 
-def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> None:
+def main() -> None:
     # configure menu loop
     background = UI.BACKGROUND
     menu = UI.ntcod_menu(OTH, OTW, OTH, OTW,  title="Create Civilization Menu")
     menu.set_direct_menu(create_civilization_menu)
     window = UI.tcod_window(background, menu)
     while True:
-        console.clear()
+        UI.CONSOLE.clear()
 
-        choice = window.display(context, console)
+        choice = window.display()
 
         if choice == "last_page":
             return
-        console.clear()
-        output = output_function_map(context, console, choice, copy.deepcopy(deoutput), window)
+        UI.CONSOLE.clear()
+        output = output_function_map(choice, copy.deepcopy(deoutput), window)
         if output["continue"]:
             output["continue"] = False
             break
@@ -131,7 +131,7 @@ def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> N
     population = output["number"]
     peoples = PopulationData(population)
 
-    mods_load = Module.mods_set_up(context, console, ["Create_Civilization_Module/"],
+    mods_load = Module.mods_set_up(["Create_Civilization_Module/"],
                                       "Create_Civilization_Template/",
                                       None, peoples)
     if mods_load is None:
@@ -140,5 +140,5 @@ def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> N
     civilization = Civilization(civilization_name, peoples, mods_load)
     thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,   "civilization",
                                    "input name of civilization file", False)
-    civilization_file_name = window.pop_frame(thisin, context, console)
+    civilization_file_name = window.pop_frame(thisin)
     IO.save_object_to_file("Play/", civilization_file_name, "civilization", civilization, False)

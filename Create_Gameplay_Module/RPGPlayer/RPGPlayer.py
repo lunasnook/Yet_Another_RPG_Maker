@@ -50,10 +50,8 @@ class RPGPlayer:
             self.current_tile = kwargs["window"].get(0)[0]
             self.current_tile.set_player(self)
             self.tiles.append(self.current_tile)
-            context = kwargs["context"]
-            console = kwargs["console"]
             thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,  self.name, "enter player name [A-Z,a-z,0-9,' ']", False)
-            self.name = kwargs["window"].pop_frame(thisin, context, console)
+            self.name = kwargs["window"].pop_frame(thisin)
             self.name_entered = True
 
             self.maps.append(kwargs["map"])
@@ -93,32 +91,26 @@ class RPGPlayer:
 
         action = kwargs["action"][-1][0]
         window = kwargs["window"]
-        context = kwargs["context"]
-        console = kwargs["console"]
         code = ""
         varss = 1
         if action == "Move North":
-            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True), context,
-                                     console)
+            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
             self.posi_y = self.posi_y - varss
             code = "varssf"
         elif action == "Move South":
-            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True), context,
-                                     console)
+            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
             self.posi_y = self.posi_y + varss
             code = "varssf"
         elif action == "Move West":
-            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True), context,
-                                     console)
+            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
             self.posi_x = self.posi_x - varss
             code = "varssf"
         elif action == "Move East":
-            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True), context,
-                                     console)
+            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
             self.posi_x = self.posi_x + varss
             code = "varssf"
         elif action == "Rest":
-            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "rest for [0-9]", True), context, console)
+            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "rest for [0-9]", True))
             code = "varssf"
         elif action == "Enter Map":
             menu_of_submap = {}
@@ -128,7 +120,7 @@ class RPGPlayer:
                 index += 1
             this_menu_UI = UI.ntcod_menu(OTH, OTW, OTH, OTW, title="List of Maps")
             this_menu_UI.set_direct_menu(menu_of_submap)
-            choice = window.pop_frame(this_menu_UI, context, console)
+            choice = window.pop_frame(this_menu_UI)
             for i in range(index):
                 if menu_of_submap[i] == choice[-1][0]:
                     choice = i

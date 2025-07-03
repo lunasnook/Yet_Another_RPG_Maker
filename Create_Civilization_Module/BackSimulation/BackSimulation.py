@@ -85,7 +85,7 @@ class BackSimulation:
             progress.add_text(f"total births: {self.total_births}")
             progress.add_text(f"total deaths: {self.total_deaths}")
 
-            kwargs["window"].display_all(kwargs["context"], kwargs["console"])
+            kwargs["window"].display_all()
 
             ages = np.array(peoples.get_attribute(self.age_id))
             settlements = np.array(peoples.get_attribute(self.require))
@@ -197,7 +197,7 @@ class BackSimulation:
             peoples.set_attribute(self.age_id, (np.array(peoples.get_attribute(self.age_id)) + 1).tolist())
 
         kwargs["window"].remove_frame()
-        kwargs["window"].display_all(kwargs["context"], kwargs["console"])
+        kwargs["window"].display_all()
 
         self.simulated = True
         self.log.append(f"population: {peoples.get_number()} people")

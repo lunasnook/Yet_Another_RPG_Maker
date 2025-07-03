@@ -19,7 +19,7 @@ def validate_modules(root):
             file.close()
 
 
-def mods_set_up(context, console, plugin_place, template_place, local_map, peoples):
+def mods_set_up(plugin_place, template_place, local_map, peoples):
     for directory in plugin_place:
         if directory[-1] == "/":
             validate_modules(directory[0:(len(directory)-1)])
@@ -70,7 +70,7 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
         if remove:
             mods_tobe_added.pop(remove_index)
 
-    def modconfig_function_map(context, console, choice, mod_manager, mod_ordered, config_ordered,
+    def modconfig_function_map(choice, mod_manager, mod_ordered, config_ordered,
                                module_ordered):
         finish = False
         if choice == 'Load Template':
@@ -82,17 +82,17 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
                 index = index + 1
 
             while True:
-                console.clear()
+                UI.CONSOLE.clear()
 
                 background = UI.BACKGROUND
                 this_menu = UI.ntcod_menu(OTH, OTW, OTH, OTW,  title="Available Templates")
                 this_menu.set_direct_menu(templates_menu)
                 this_window = UI.tcod_window(background, this_menu)
-                choice = this_window.display(context, console)
+                choice = this_window.display()
 
                 if choice == "last_page":
                     return finish
-                console.clear()
+                UI.CONSOLE.clear()
 
                 mods = glob.glob(template_place + choice[-1][0] + "/*.json", recursive=True)
                 id_table = {}
@@ -124,19 +124,19 @@ def mods_set_up(context, console, plugin_place, template_place, local_map, peopl
     config_ordered = []
     module_ordered = []
     while True:
-        console.clear()
+        UI.CONSOLE.clear()
 
         background = UI.BACKGROUND
         menu = UI.ntcod_menu(OTH, OTW, OTH, OTW,  title="Mods Configuration Menu")
         menu.set_direct_menu(mod_configuration_menu)
         window = UI.tcod_window(background, menu)
-        choice = window.display(context, console)
+        choice = window.display()
 
         if choice == "last_page":
             return
-        console.clear()
+        UI.CONSOLE.clear()
 
-        finish = modconfig_function_map(context, console, choice[-1][0], mod_manager, mod_ordered, config_ordered,
+        finish = modconfig_function_map(choice[-1][0], mod_manager, mod_ordered, config_ordered,
                                         module_ordered)
         if finish:
             break

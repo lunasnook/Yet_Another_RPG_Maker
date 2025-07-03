@@ -7,6 +7,11 @@ import random
 from itertools import chain
 from typing import List, Any
 
+
+CONTEXT = None
+CONSOLE = None
+
+
 WIDTH = 77
 HEIGHT = 50
 ASPECT_RATIO = WIDTH / HEIGHT
@@ -195,7 +200,7 @@ COLOR_PLAYER = (43, 43, 43)
 ALPHA = 220
 
 
-def alpha_print(console, y, x, string, fg=None, bg=None, alpha=ALPHA,
+def alpha_print(y, x, string, fg=None, bg=None, alpha=ALPHA,
                 frame_width=WIDTH, frame_height=HEIGHT):
     def color_mix(color1, color2, alpha):
         r = color2[0] / 255 * alpha / 255 + color1[0] / 255 * (1 - alpha / 255)
@@ -211,9 +216,9 @@ def alpha_print(console, y, x, string, fg=None, bg=None, alpha=ALPHA,
         if cx < 0 or cx >= frame_width or cy < 0 or cy >= frame_height:
             continue
 
-        old_char_code = console.ch[cy, cx]
-        old_fg = console.fg[cy, cx]
-        old_bg = console.bg[cy, cx]
+        old_char_code = CONSOLE.ch[cy, cx]
+        old_fg = CONSOLE.fg[cy, cx]
+        old_bg = CONSOLE.bg[cy, cx]
 
         old_char = chr(old_char_code) if old_char_code else ' '
         old_fg_tuple = tuple(old_fg.tolist()) if hasattr(old_fg, 'tolist') else old_fg
@@ -236,7 +241,7 @@ def alpha_print(console, y, x, string, fg=None, bg=None, alpha=ALPHA,
             final_fg = fg
             final_bg = color_mix(old_bg_tuple, bg, alpha) if bg is not None else old_bg_tuple
 
-        console.print(cx, cy, final_char, fg=final_fg, bg=final_bg)
+        CONSOLE.print(cx, cy, final_char, fg=final_fg, bg=final_bg)
 
 
 def tcod_event(event, shift=False):
@@ -316,11 +321,11 @@ class tcod_window:
         if change_focus:
             self.focus = self.number_of_frames - 1
 
-    def pop_frame(self, frame, context, console):
+    def pop_frame(self, frame):
         original_focus = self.focus
         self.add_frame(frame)
         self.focus = self.number_of_frames - 1
-        output = self.display(context, console)
+        output = self.display()
         self.remove_frame()
         self.focus = original_focus
         return output
@@ -344,18 +349,18 @@ class tcod_window:
         return
 
 
-    def display_all(self, context, console):
-        console.clear()
+    def display_all(self):
+        CONSOLE.clear()
         for i in range(self.number_of_frames):
             if (hasattr(self.frames_in_window[i][0], "_hide")) and (self.frames_in_window[i][0]._hide):
                 continue
-            self.frames_in_window[i][0].display_frame(console)
-            self.frames_in_window[i][0].display(console)
-        context.present(console)
+            self.frames_in_window[i][0].display_frame()
+            self.frames_in_window[i][0].display()
+        CONTEXT.present(CONSOLE)
 
-    def display(self, context, console):
+    def display(self):
         while True:
-            self.display_all(context, console)
+            self.display_all()
 
             for event in tcod.event.get():
                 frame_obj = self.frames_in_window[self.focus][0]
@@ -475,7 +480,7 @@ class tcod_window:
                                         self.frames_in_window[1][0].set_default()
                                         self.frames_in_window[1][0].set_hide(False)
                                 ##########
-                                sepe_way = self.pop_frame(this_menu[-1][current_key], context, console)
+                                sepe_way = self.pop_frame(this_menu[-1][current_key])
                                 ##########
                                 ##########
                                 if self.focus == 2:
@@ -566,33 +571,33 @@ class tcod_frame:
     def set_frame(self, draw_frame):
         self.draw_frame = draw_frame
 
-    def display_frame(self, console):
+    def display_frame(self):
         for i in list(range(self.y_span)):
             for j in list(range(self.x_span)):
                 if self.draw_frame:
                     if ((i == 0) or (i == self.y_span - 1)) and ((j != 0) and (j != self.x_span - 1)):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='─', fg=FGF,
+                        alpha_print(y=self.start_y + i, x=self.start_x + j, string='─', fg=FGF,
                                       bg=BG)
                     if ((j == 0) or (j == self.x_span - 1)) and ((i != 0) and (i != self.y_span - 1)):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='│', fg=FGF,
+                        alpha_print(y=self.start_y + i, x=self.start_x + j, string='│', fg=FGF,
                                       bg=BG)
                     if (i == 0) and (j == 0):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='┌', fg=FGF,
+                        alpha_print(y=self.start_y + i, x=self.start_x + j, string='┌', fg=FGF,
                                       bg=BG)
                     if (i == 0) and (j == self.x_span - 1):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='┐', fg=FGF,
+                        alpha_print(y=self.start_y + i, x=self.start_x + j, string='┐', fg=FGF,
                                       bg=BG)
                     if (i == self.y_span - 1) and (j == 0):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='└', fg=FGF,
+                        alpha_print(y=self.start_y + i, x=self.start_x + j, string='└', fg=FGF,
                                       bg=BG)
                     if (i == self.y_span - 1) and (j == self.x_span - 1):
-                        alpha_print(console, y=self.start_y + i, x=self.start_x + j, string='┘', fg=FGF,
+                        alpha_print(y=self.start_y + i, x=self.start_x + j, string='┘', fg=FGF,
                                       bg=BG)
                 elif ((i == 0) | (i == self.y_span - 1)) | ((j == 0) | (j == self.x_span - 1)):
-                    alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=" ", fg=FGF,
+                    alpha_print(y=self.start_y + i, x=self.start_x + j, string=" ", fg=FGF,
                                   bg=BG)
                 if not (((i == 0) | (i == self.y_span - 1)) | ((j == 0) | (j == self.x_span - 1))):
-                    alpha_print(console, y=self.start_y + i, x=self.start_x + j, string=" ", fg=FGF,
+                    alpha_print(y=self.start_y + i, x=self.start_x + j, string=" ", fg=FGF,
                                   bg=BG)
 
 
@@ -644,14 +649,14 @@ class list_of_ntcod_textout:
         self.list_of_ntcod_textout = {"999999999": default_illusion}
         self.based = "999999999"
 
-    def display(self, console):
+    def display(self):
         if not self.hide:
-            self.list_of_ntcod_textout[self.based].display(console)
+            self.list_of_ntcod_textout[self.based].display()
         return
 
-    def display_frame(self, console):
+    def display_frame(self):
         if not self.hide:
-            self.list_of_ntcod_textout[self.based].display_frame(console)
+            self.list_of_ntcod_textout[self.based].display_frame()
         return
 
     def set_frame(self, draw_frame):
@@ -838,7 +843,7 @@ class ntcod_textout(tcod_frame):
                         break
         return formatted
 
-    def display(self, console):
+    def display(self):
         if not self.show_page:
             self.index = 0
         else:
@@ -861,7 +866,7 @@ class ntcod_textout(tcod_frame):
                 color_index += 1
             if color_index == len(color_rotation):
                 color_index = 0
-            alpha_print(console, y=self.start_print_y + self.index, x=self.start_print_x,
+            alpha_print(y=self.start_print_y + self.index, x=self.start_print_x,
                           string=this_string[0], fg=color_rotation[color_index])
             self.index += 1
 
@@ -912,23 +917,23 @@ class ntcod_textout(tcod_frame):
 
                     # 超宽则按旧方案在右侧截断
                     if not first_page and already_length + len(t1) >= self.x_span:
-                        alpha_print(console, y=self.start_print_y - 1,
+                        alpha_print(y=self.start_print_y - 1,
                                     x=tstart_x + already_length,
                                     string=(self.x_span - already_length - 1) * '─' + '┐', fg=FGN)
-                        alpha_print(console, y=self.start_print_y,
+                        alpha_print(y=self.start_print_y,
                                     x=tstart_x + already_length,
                                     string=(self.x_span - already_length - 1) * '•' + '│', fg=FGN)
-                        alpha_print(console, y=self.start_print_y + 1,
+                        alpha_print(y=self.start_print_y + 1,
                                     x=tstart_x + already_length,
                                     string=(self.x_span - already_length - 1) * '─' + '─', fg=FGF)
                         break
 
                     # 正常绘制
-                    alpha_print(console, y=self.start_print_y - 1, x=tstart_x + already_length, string=t1, fg=color)
-                    alpha_print(console, y=self.start_print_y, x=tstart_x + already_length, string=t2, fg=color)
-                    alpha_print(console, y=self.start_print_y + 1, x=tstart_x + already_length, string=t3, fg=FGF)
+                    alpha_print(y=self.start_print_y - 1, x=tstart_x + already_length, string=t1, fg=color)
+                    alpha_print(y=self.start_print_y, x=tstart_x + already_length, string=t2, fg=color)
+                    alpha_print(y=self.start_print_y + 1, x=tstart_x + already_length, string=t3, fg=FGF)
                     if tab_rot == len(pages) - 1:
-                        alpha_print(console, y=self.start_print_y + 1, x=tstart_x + already_length + len(t1), string='─' * (self.x_span - already_length - len(t1)), fg=FGF)
+                        alpha_print(y=self.start_print_y + 1, x=tstart_x + already_length + len(t1), string='─' * (self.x_span - already_length - len(t1)), fg=FGF)
                     already_length += len(t1)
                     first_page = False
 
@@ -951,11 +956,11 @@ class ntcod_textout(tcod_frame):
                 left_pad = self.x_span - used_len
                 current_x = tstart_x
                 if pages.index(chosen[0]) > 0 and left_pad > 0:
-                    alpha_print(console, y=self.start_print_y - 1,
+                    alpha_print(y=self.start_print_y - 1,
                                 x=current_x, string='┌' + '─' * (left_pad - 1), fg=FGN)
-                    alpha_print(console, y=self.start_print_y,
+                    alpha_print(y=self.start_print_y,
                                 x=current_x, string='│' + '•' * (left_pad - 1), fg=FGN)
-                    alpha_print(console, y=self.start_print_y + 1,
+                    alpha_print(y=self.start_print_y + 1,
                                 x=current_x, string='─' + '─' * (left_pad - 1), fg=FGF)
                     current_x += left_pad
 
@@ -963,9 +968,9 @@ class ntcod_textout(tcod_frame):
                 for pg in chosen:
                     pg_idx = pages.index(pg)
                     color, t1, t2, t3 = get_content_to_display(pg, pg_idx)
-                    alpha_print(console, y=self.start_print_y - 1, x=current_x, string=t1, fg=color)
-                    alpha_print(console, y=self.start_print_y, x=current_x, string=t2, fg=color)
-                    alpha_print(console, y=self.start_print_y + 1, x=current_x, string=t3, fg=FGF)
+                    alpha_print(y=self.start_print_y - 1, x=current_x, string=t1, fg=color)
+                    alpha_print(y=self.start_print_y, x=current_x, string=t2, fg=color)
+                    alpha_print(y=self.start_print_y + 1, x=current_x, string=t3, fg=FGF)
                     current_x += len(t1)
         # ----------------------------------------------------------------
 
@@ -1236,18 +1241,18 @@ class ntcod_menu(tcod_frame):
         self.index = 0
 
 
-    def display(self, console):
+    def display(self):
         # self.finalize_adaptive_menu()
         print_line = 0
         length = 0
         for i in self.position:
             thisstring = i[0] + "/" if isinstance(i, list) else i + "/"
             if (length + len(thisstring)) > (self.text_span - 2):
-                alpha_print(console, y=self.start_print_y, x=self.start_print_x + length,
+                alpha_print(y=self.start_print_y, x=self.start_print_x + length,
                               string=thisstring[0:(self.text_span - length - 2)] + "...")
                 break
             else:
-                alpha_print(console, y=self.start_print_y, x=self.start_print_x + length, string=thisstring)
+                alpha_print(y=self.start_print_y, x=self.start_print_x + length, string=thisstring)
             length += len(thisstring)
         print_line += 1
 
@@ -1274,11 +1279,11 @@ class ntcod_menu(tcod_frame):
                 y_pos = start_y + row_idx * 2
                 if len(padded) > self.text_span:
                     if padded.rfind("]") < self.text_span:
-                        alpha_print(console, y=y_pos + 1, x=cursor_x, string=padded[:self.text_span], fg=fg)
+                        alpha_print(y=y_pos + 1, x=cursor_x, string=padded[:self.text_span], fg=fg)
                     else:
-                        alpha_print(console, y=y_pos + 1, x=cursor_x, string=padded[:self.text_span - 4] + "...]", fg=fg)
+                        alpha_print(y=y_pos + 1, x=cursor_x, string=padded[:self.text_span - 4] + "...]", fg=fg)
                 else:
-                    alpha_print(console, y=y_pos + 1, x=cursor_x, string=padded, fg=fg)
+                    alpha_print(y=y_pos + 1, x=cursor_x, string=padded, fg=fg)
                 cursor_x += spacing + len(padded)
 
         self.last_choice = print_line - 2
@@ -1295,27 +1300,27 @@ class ntcod_input(tcod_frame):
         self.cursor = len(self.output)
         self.x_span = x_span
 
-    def display(self, console):
+    def display(self):
         index = 0
         thisstring = self.input_str + ": "
         while len(thisstring) > (self.x_span - 2):
-            alpha_print(console, y=self.start_print_y + index, x=self.start_print_x, string=thisstring[0:(self.x_span - 2)])
+            alpha_print(y=self.start_print_y + index, x=self.start_print_x, string=thisstring[0:(self.x_span - 2)])
             thisstring = thisstring[(self.x_span - 2):len(thisstring)]
             index += 1
-        alpha_print(console, y=self.start_print_y + index, x=self.start_print_x, string=thisstring)
+        alpha_print(y=self.start_print_y + index, x=self.start_print_x, string=thisstring)
         index += 1
-        alpha_print(console, y=self.start_print_y + index + 1, x=self.start_print_x, string=self.output)
-        alpha_print(console, y=self.start_print_y + index + 1, x=self.start_print_x + self.cursor, string=" ",
+        alpha_print(y=self.start_print_y + index + 1, x=self.start_print_x, string=self.output)
+        alpha_print(y=self.start_print_y + index + 1, x=self.start_print_x + self.cursor, string=" ",
                       bg=FGF)
         if not self.return_integer:
             index += 1
             thisstring = "Capitalized: " + str(self.capitalized)
             while len(thisstring) > (self.x_span - 2):
-                alpha_print(console, y=self.start_print_y + index + 2, x=self.start_print_x,
+                alpha_print(y=self.start_print_y + index + 2, x=self.start_print_x,
                               string=thisstring[0:(self.x_span - 2)])
                 thisstring = thisstring[(self.x_span - 2):len(thisstring)]
                 index += 1
-            alpha_print(console, y=self.start_print_y + index + 2, x=self.start_print_x, string=thisstring)
+            alpha_print(y=self.start_print_y + index + 2, x=self.start_print_x, string=thisstring)
 
 
 class color_layers:
@@ -1338,6 +1343,47 @@ class color_layers:
     def toggle_show_key(self, key):
         if key in list(self.show.keys()):
             self.show[key] = not self.show[key]
+
+    def dig_hole_in_layer(
+        self,
+        parent_key: str,
+        y_start: int,
+        x_start: int,
+        y_span: int,
+        x_span: int,
+        new_alpha: "np.ndarray | int",
+        hole_key: str = "",
+    ) -> None:
+        # ---------- 基本检查 ----------
+        if parent_key not in self.color_layers:
+            raise KeyError(f"[dig_hole_in_layer] 父层 {parent_key!r} 不存在")
+
+        p_y, p_x, p_h, p_w, p_color, p_alpha, _ = self.color_layers[parent_key]
+
+        rel_y = y_start - p_y
+        rel_x = x_start - p_x
+        if (rel_y < 0 or rel_x < 0 or
+            rel_y + y_span > p_h or
+            rel_x + x_span > p_w):
+            raise ValueError("挖洞区域超出父层范围")
+
+        import numpy as np
+
+        # ---------- 整理 new_alpha ----------
+        if hasattr(new_alpha, "shape"):          # ndarray / 矩阵
+            if new_alpha.shape != (y_span, x_span):
+                raise ValueError("new_alpha 尺寸必须与 (y_span,x_span) 一致")
+            alpha_block = new_alpha
+        else:                                   # 标量
+            alpha_block = np.full((y_span, x_span), new_alpha)
+
+        # ---------- 写回 α ----------
+        if isinstance(p_alpha, np.ndarray):
+            p_alpha[rel_y:rel_y + y_span, rel_x:rel_x + x_span] = alpha_block
+        else:  # list[list[int]]
+            for dy in range(y_span):
+                for dx in range(x_span):
+                    p_alpha[rel_y + dy][rel_x + dx] = int(alpha_block[dy, dx])
 
     def render(self, tile):
         tile.renew_defaultscreen()
@@ -1366,15 +1412,16 @@ class color_layers:
                     for entity in tile.listofentity[index]:
                         if (entity.y - current_layer[0] >= 0) and (entity.y - current_layer[0] < current_layer[2]):
                             if (entity.x - current_layer[1] >= 0) and (entity.x - current_layer[1] < current_layer[3]):
-                                bg = entity.color
-                                this_color = current_layer[4][entity.y - current_layer[0]][entity.x - current_layer[1]]
-                                newR = this_color[0] / 255 * current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255 + bg[0] / 255 * (
-                                            1 - current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255)
-                                newG = this_color[1] / 255 * current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255 + bg[1] / 255 * (
-                                            1 - current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255)
-                                newB = this_color[2] / 255 * current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255 + bg[2] / 255 * (
-                                            1 - current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255)
-                                entity.update_color(tuple([int(newR * 255), int(newG * 255), int(newB * 255)]))
+                                if not entity.no_color_layer:
+                                    bg = entity.color
+                                    this_color = current_layer[4][entity.y - current_layer[0]][entity.x - current_layer[1]]
+                                    newR = this_color[0] / 255 * current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255 + bg[0] / 255 * (
+                                                1 - current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255)
+                                    newG = this_color[1] / 255 * current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255 + bg[1] / 255 * (
+                                                1 - current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255)
+                                    newB = this_color[2] / 255 * current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255 + bg[2] / 255 * (
+                                                1 - current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255)
+                                    entity.update_color(tuple([int(newR * 255), int(newG * 255), int(newB * 255)]))
 
                 for i in range(current_layer[2]):
                     for j in range(current_layer[3]):
@@ -1424,21 +1471,21 @@ class ntcod_tile(tcod_frame):
         self.entity_xys = {}
         self.overlap_entities = []
 
-    def display(self, console):
+    def display(self):
         if self.height >= self.final_y_span and self.width >= self.final_x_span:
-            console.rgb[self.final_start_y:self.final_start_y + self.final_y_span, self.final_start_x:self.final_start_x + self.final_x_span] = \
+            CONSOLE.rgb[self.final_start_y:self.final_start_y + self.final_y_span, self.final_start_x:self.final_start_x + self.final_x_span] = \
                 [sublist[self.tileprintstart_x:self.tileprintstart_x + self.final_x_span] for sublist in self.screen[self.tileprintstart_y:self.tileprintstart_y + self.final_y_span]]
 
         for index in list(self.listofentity.keys()):
             if (self.rpgplayer is not None) and (self.rpgplayer.current_view == "all"):
                 for entity in self.listofentity[index]:
                     if (entity in self.overlap_entities) and (((int(time.time()) % (len(self.viewmods)-2)) + 2) == np.where(index == np.array(list(self.viewmods.values())))[0][0]):
-                        entity.display(console)
+                        entity.display()
                     elif entity not in self.overlap_entities:
-                        entity.display(console)
+                        entity.display()
             elif (self.rpgplayer is not None) and ((index == "player") or (index == self.rpgplayer.current_view)):
                 for entity in self.listofentity[index]:
-                    entity.display(console)
+                    entity.display()
 
     def set_player(self, rpgplayer):
         self.rpgplayer = rpgplayer
@@ -1513,6 +1560,12 @@ class ntcod_tile(tcod_frame):
     def get_player_level(self):
         return len(self.rpgplayer.tiles)
 
+    def delete_layer(self, key):
+        self.color_layers.delete_layer(key)
+
+    def get_color_layer_keys(self):
+        return self.color_layers.color_layers.keys()
+
 
 class ntcod_entity(tcod_frame):
     def __init__(self, char, color, start_y, start_x, tilewindow, modid, autoadd=True):
@@ -1526,11 +1579,12 @@ class ntcod_entity(tcod_frame):
         self.modid = modid
         if autoadd:
             tilewindow.add_entity(self, modid)
+        self.no_color_layer = False
 
-    def display(self, console):
+    def display(self):
         if ((self.x - self.tilewindow.tileprintstart_x) >= 0) and ((self.x - self.tilewindow.tileprintstart_x) < self.tilewindow.final_x_span):
             if ((self.y - self.tilewindow.tileprintstart_y) >= 0) and ((self.y - self.tilewindow.tileprintstart_y) < self.tilewindow.final_y_span):
-                alpha_print(console, y=self.y - self.tilewindow.tileprintstart_y + self.tilewindow.final_start_y, x=self.x - self.tilewindow.tileprintstart_x + self.tilewindow.final_start_x, string=self.char, fg=self.color)
+                alpha_print(y=self.y - self.tilewindow.tileprintstart_y + self.tilewindow.final_start_y, x=self.x - self.tilewindow.tileprintstart_x + self.tilewindow.final_start_x, string=self.char, fg=self.color)
 
     def update(self, y, x):
         self.y = y
@@ -1540,11 +1594,19 @@ class ntcod_entity(tcod_frame):
         self.color = copy.deepcopy(self.default_color)
     def update_color(self, color_new):
         self.color = color_new
+    def update_default_color(self, color_new):
+        self.default_color = color_new
+    def get_posi(self):
+        return [self.y, self.x]
     def get_modid(self):
         return self.modid
 
     def get_posi(self):
         return [self.y, self.x]
+
+    def post_render_set_entity_color(self, new_color):
+        self.color = new_color
+
 
 
 def find_surround(width, height, posi_y, posi_x):

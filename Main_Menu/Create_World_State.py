@@ -79,15 +79,15 @@ create_world_menu = {
 }
 
 
-def output_function_map(context: tcod.context.new_terminal, console: tcod.console.Console, choice: list, output: dict, window: UI.tcod_window) -> dict:
+def output_function_map(choice: list, output: dict, window: UI.tcod_window) -> dict:
     if choice[-1][0] == 'Name The World To Be Created':
         thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,   output["world_name"], "world name[A-Z,a-z,0-9,' ']", False)
-        output["world_name"] = window.pop_frame(thisin, context, console)
+        output["world_name"] = window.pop_frame(thisin)
     elif choice[-1][0] == 'Set The World Dimensions':
         thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,   output["height"], "height[0-9]", True)
-        output["height"] = window.pop_frame(thisin, context, console)
+        output["height"] = window.pop_frame(thisin)
         thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,   output["width"], "width[0-9]", True)
-        output["width"] = window.pop_frame(thisin, context, console)
+        output["width"] = window.pop_frame(thisin)
     elif choice[-1][0] == 'Continue To Mods':
         output["continue"] = True
     return output
@@ -102,21 +102,21 @@ deoutput = {
 }
 
 
-def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> None:
+def main() -> None:
     # configure menu loop
     background = UI.BACKGROUND
     menu = UI.ntcod_menu(OTH, OTW, OTH, OTW,  title="Create World Menu")
     menu.set_direct_menu(create_world_menu)
     window = UI.tcod_window(background, menu)
     while True:
-        console.clear()
+        UI.CONSOLE.clear()
 
-        choice = window.display(context, console)
+        choice = window.display()
 
         if choice == "last_page":
             return
-        console.clear()
-        output = output_function_map(context, console, choice, copy.deepcopy(deoutput), window)
+        UI.CONSOLE.clear()
+        output = output_function_map(choice, copy.deepcopy(deoutput), window)
         if output["continue"]:
             output["continue"] = False
             break
@@ -126,12 +126,12 @@ def main(context: tcod.context.new_terminal, console: tcod.console.Console) -> N
     width = output["width"]
     local_map = MapData(height=height, width=width)
 
-    mods_load = Module.mods_set_up(context, console, ["Create_World_Module/"], "Create_World_Template/", local_map, None)
+    mods_load = Module.mods_set_up(["Create_World_Module/"], "Create_World_Template/", local_map, None)
     if mods_load is None:
         return
     # weather 0.2684 sec
 
     world = World(world_name, local_map, mods_load)
     thisin = UI.ntcod_input(OFH, OFW, OFHS, OFWS,  "world", "input name of world file", False)
-    world_file_name = window.pop_frame(thisin, context, console)
+    world_file_name = window.pop_frame(thisin)
     IO.save_object_to_file("Play/", world_file_name, "world", world, False)
