@@ -1,4 +1,6 @@
 import copy
+
+import numpy as np
 import tcod
 from Library import UI
 from Library import Module
@@ -7,12 +9,35 @@ from Library.UI import OTH, OTW, OFH, OFW, OFHS, OFWS
 
 
 class MapData:
-    def __init__(self, height: int, width: int) -> None:
+    def __init__(self, height: int, width: int, enter_point = None, walkable = None, exit_point = None) -> None:
         self._height = height
         self._width = width
+
+        self.default_screen = []
         self._layers = {}
         self._submaps = {}
-        self.default_screen = []
+
+        if enter_point is not None:
+            self.enter_point = enter_point
+        else:
+            self.enter_point = [(0, 0)]
+        if walkable is not None:
+            self.walkable = walkable
+        else:
+            self.walkable = np.zeros((self._height, self._width)) + 1
+        if exit_point is not None:
+            self.exit_point = exit_point
+        else:
+            self.exit_point = [(self._height - 1, self._width - 1)]
+
+    def get_enter(self):
+        return self.enter_point
+
+    def get_exit(self):
+        return self.exit_point
+
+    def get_walkable(self):
+        return self.walkable
 
     def get_height(self) -> int:
         return self._height

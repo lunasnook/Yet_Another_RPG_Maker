@@ -64,8 +64,6 @@ def function_map(choice: list) -> None:
                                                count=UI.NUM_COLOR)
     elif choice == ['Main Menu', 'Quit']:
         raise SystemExit()
-    else:
-        raise SystemExit()
 
 def main() -> None:
     # Settings

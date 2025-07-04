@@ -17,10 +17,10 @@ def main_update(action_time, local_map: Main_Menu.Create_World_State.MapData, pe
     action_time = action_time
     for mod in mods:
         this_time = str(time.time() - start_operation)
-        processing_info.clear()
-        processing_info.add_text("for " + this_time.split(".")[0] + "." + this_time.split(".")[1][0:5] + ' seconds')
-        processing_info.add_text("current mod: " + mod)
-        window.display_all()
+        # processing_info.clear()
+        # processing_info.add_text("for " + this_time.split(".")[0] + "." + this_time.split(".")[1][0:5] + ' seconds')
+        # processing_info.add_text("current mod: " + mod)
+        # window.display_all()
         if mod == "timeline":
             mods[mod].update(action_time=action_time)
         else:
@@ -120,8 +120,8 @@ def play(continue_game = False) -> None:
         mainmenu.add_menu_item("Save and Quit", "system")
         mainmenu.add_menu_item("Close Menu", "system")
 
-        window.remove_frame("system_processing")
-        window.display_all()
+        # window.remove_frame("system_processing")
+        # window.display_all()
         choice = window.display()
 
         if choice == "last_page":
@@ -150,9 +150,6 @@ def play(continue_game = False) -> None:
             actions, menu = mods[choice[-1][1]].act_on_action(action=choice, map=local_map, peoples=peoples, mods=mods, window=window)
             del choice[-1]
             if not menu:
-                window.add_frame(processing_info,"system_processing", change_focus=False)
-                window.display_all()
+                # window.add_frame(processing_info,"system_processing", change_focus=False)
+                # window.display_all()
                 action_time, elapse_time = main_update(actions, local_map, peoples, mods, window)
-            # window.set_focus(0)
-            # if not mainmenu._hide:
-            #     mainmenu.toggle_hide()

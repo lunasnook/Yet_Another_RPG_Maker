@@ -1,6 +1,7 @@
 from yapsy.IPlugin import IPlugin
 
 
+# TODO packaging
 class Example_Plugin(IPlugin):
     def initialize(self, **kwargs):
         obj = kwargs["obj"]
@@ -8,6 +9,8 @@ class Example_Plugin(IPlugin):
         return this_mod
 
 
+# TODO json file to setting
+# general data(rw), specific data(r), public functions...
 class Example:
     def __init__(self, obj) -> None:
         self.id = obj["id"]

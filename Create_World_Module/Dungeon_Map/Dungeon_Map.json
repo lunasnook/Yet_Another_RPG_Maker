@@ -1,0 +1,15 @@
+{
+  "id": "dungeon_map",
+  "Module": "Dungeon_Map",
+  "Require": ["biomes"],
+  "biome_exception": 14,
+  "number_of_dungeon": 50,
+  "dmap_width": 100,
+  "dmap_height": 100,
+  "max_depth": 5,
+  "min_size": 4,
+  "icon": "Ω",
+  "icon_color": [106, 10, 0],
+  "player_id": "rpgplayer",
+  "comment": "need general data"
+}

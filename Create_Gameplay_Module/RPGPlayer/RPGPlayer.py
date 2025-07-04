@@ -1,3 +1,5 @@
+import random
+
 from yapsy.IPlugin import IPlugin
 from Library import UI
 from Library.UI import OTH, OTW, OFH, OFW, OFHS, OFWS, HEIGHT, OSHS, WIDTH
@@ -35,6 +37,7 @@ class RPGPlayer:
         self.current_view = "all"
         self.view_mods_initiated = False
         self.view_mods = None
+        self.walkable = []
         return
 
     def update(self, **kwargs) -> None:
@@ -57,9 +60,10 @@ class RPGPlayer:
             self.maps.append(kwargs["map"])
             self.height = self.maps[0].get_height()
             self.width = self.maps[0].get_width()
-            self.positions.append((0,0))
-            self.posi_y = 0
-            self.posi_x = 0
+            self.positions.append(list(random.choice(self.maps[-1].get_enter())))
+            self.posi_y = self.positions[-1][0]
+            self.posi_x = self.positions[-1][1]
+            self.walkable.append(self.maps[-1].get_walkable())
 
         if not self.player_added:
             self.icon = UI.ntcod_entity(self.image, tuple(self.color), self.posi_y, self.posi_x, tilewindow=self.current_tile, modid="player")
@@ -77,7 +81,7 @@ class RPGPlayer:
         this_actions = ["Rest", "Move North", "Move East", "Move South", "Move West"]
         if (self.posi_y, self.posi_x) in self.maps[-1].get_submap_keys():
             this_actions.append("Enter Map")
-        if len(self.positions) > 1:
+        if (len(self.positions) > 1) and ([self.posi_y, self.posi_x] in list(self.maps[-1].get_exit())):
             this_actions.append("Exit Map")
         return_dict = {"title": "Misc.", 0: {"title": "Movement"}}
         for i in range(len(this_actions)):
@@ -94,21 +98,33 @@ class RPGPlayer:
         code = ""
         varss = 1
         if action == "Move North":
-            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
-            self.posi_y = self.posi_y - varss
-            code = "varssf"
+            # varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
+            if (self.posi_y - 1 >= 0) and (self.walkable[-1][self.posi_y - 1][self.posi_x] == 1):
+                self.posi_y = self.posi_y - 1
+                code = "varssf"
+            else:
+                code = "0t"
         elif action == "Move South":
-            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
-            self.posi_y = self.posi_y + varss
-            code = "varssf"
+            # varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
+            if (self.posi_y + 1 < self.height) and (self.walkable[-1][self.posi_y + 1][self.posi_x] == 1):
+                self.posi_y = self.posi_y + 1
+                code = "varssf"
+            else:
+                code = "0t"
         elif action == "Move West":
-            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
-            self.posi_x = self.posi_x - varss
-            code = "varssf"
+            # varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
+            if (self.posi_x - 1 >= 0) and (self.walkable[-1][self.posi_y][self.posi_x - 1] == 1):
+                self.posi_x = self.posi_x - 1
+                code = "varssf"
+            else:
+                code = "0t"
         elif action == "Move East":
-            varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
-            self.posi_x = self.posi_x + varss
-            code = "varssf"
+            # varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "move for [0-9]", True))
+            if (self.posi_x + 1 < self.width) and (self.walkable[-1][self.posi_y][self.posi_x + 1] == 1):
+                self.posi_x = self.posi_x + 1
+                code = "varssf"
+            else:
+                code = "0t"
         elif action == "Rest":
             varss = window.pop_frame(UI.ntcod_input(OFH, OFW, OFHS, OFWS, varss, "rest for [0-9]", True))
             code = "varssf"
@@ -134,9 +150,10 @@ class RPGPlayer:
             self.height = self.maps[-1].get_height()
             self.width = self.maps[-1].get_width()
             self.maps[-1].set_default_screen_to_tile(self.current_tile)
-            self.positions.append((0,0))
-            self.posi_y = 0
-            self.posi_x = 0
+            self.positions.append(list(random.choice(self.maps[-1].get_enter())))
+            self.posi_y = self.positions[-1][0]
+            self.posi_x = self.positions[-1][1]
+            self.walkable.append(self.maps[-1].get_walkable())
             code = "1f" # action_time, menu_only
         elif action == "Exit Map":
             self.player_added = True
@@ -148,6 +165,7 @@ class RPGPlayer:
             self.maps.pop()
             self.positions.pop()
             self.posi_y, self.posi_x = self.positions[-1]
+            self.walkable.pop()
             code = "1f"
         elif action == "toggle entity view":
             if not self.view_mods_initiated:
@@ -206,3 +224,6 @@ class RPGPlayer:
         self.positions = [self.positions[0]]
         self.icon = window.get(0)[0].get_player_entity()
         self.icon_levels = [self.icon]
+
+    def get_current_map(self):
+        return self.maps[-1]

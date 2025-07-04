@@ -480,11 +480,13 @@ class tcod_window:
                                         self.frames_in_window[1][0].set_default()
                                         self.frames_in_window[1][0].set_hide(False)
                                 ##########
-                                sepe_way = self.pop_frame(this_menu[-1][current_key])
+                                self.add_frame(this_menu[-1][current_key], "sub_menu")
+                                sepe_way = self.display()
                                 ##########
                                 ##########
                                 if self.focus == 2:
-                                    self.frames_in_window[1][0].set_hide(True)
+                                    if hasattr(self.frames_in_window[1][0], "set_hide"):
+                                        self.frames_in_window[1][0].set_hide(True)
                                 ##########
                                 ##########
                                 if sepe_way == "last_page":
@@ -498,7 +500,8 @@ class tcod_window:
                             return return_position
                     if (event_code == ["N", "x"]) | (event_code == ["S", "BACKSPACE"]):
                         if (self.frames_in_window[self.focus][0].get_parent_menu() is not None) and (len(self.frames_in_window[self.focus][0].this_menu) == 1):
-                            return "last_page"
+                            self.remove_frame("sub_menu")
+                            continue
                         if len(this_menu) > 1:
                             position.pop()
                             this_menu.pop()
@@ -680,7 +683,7 @@ class list_of_ntcod_textout:
 
 
 class ntcod_textout(tcod_frame):
-    def __init__(self, start_y, start_x, y_span, x_span, initial_text, show_page=True, initial_page="overview", smart_page=False, draw_frame=True):
+    def __init__(self, start_y, start_x, y_span, x_span, initial_text, show_page=True, initial_page="overview", smart_page=False, draw_frame=False):
         self.smart_page = smart_page
         self.start_y = start_y
         self.start_x = start_x
@@ -999,7 +1002,7 @@ BACKGROUND = ntcod_textout(-1, -1, HEIGHT+2, WIDTH+2, "", False, "")
 
 
 class ntcod_menu(tcod_frame):
-    def __init__(self, start_y, start_x, y_span, x_span, draw_frame=True, title="Choose Action", parent_menu=None, force_num_col=None, hide=False):
+    def __init__(self, start_y, start_x, y_span, x_span, draw_frame=False, title="Choose Action", parent_menu=None, force_num_col=None, hide=False):
         super().__init__(start_y, start_x, y_span, x_span, draw_frame=draw_frame)
         self.parent_menu = parent_menu
         self.title = title
