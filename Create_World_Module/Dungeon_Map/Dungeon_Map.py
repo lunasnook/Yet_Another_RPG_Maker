@@ -191,9 +191,9 @@ class Dungeon_Map_Data:
             row = []
             for x in range(self.width):
                 if self.dungeon_map[y, x] == 1:
-                    row.append([' ', [180, 180, 180], [60, 60, 60]])
+                    row.append([self.floor_config[0], self.floor_config[1], self.floor_config[2]])
                 else:
-                    row.append(['▓', [180, 180, 180], [120, 120, 120]])
+                    row.append([self.floor_config[3], self.floor_config[4], self.floor_config[5]])
             self.screen.append(row)
 
         pass_enter = [[entrance[1], entrance[0]]]
@@ -222,11 +222,17 @@ class Dungeon_Map:
         self.start_view_dist = obj["start_view_dist"]
 
         self.road_char = obj["road_char"],
+        self.road_char = self.road_char[0]
         self.road_fg = obj["road_fg"],
+        self.road_fg = self.road_fg[0]
         self.road_bg = obj["road_bg"],
+        self.road_bg = self.road_bg[0]
         self.wall_char = obj["wall_char"],
+        self.wall_char = self.wall_char[0]
         self.wall_fg = obj["wall_fg"],
+        self.wall_fg = self.wall_fg[0]
         self.wall_bg = obj["wall_bg"],
+        self.wall_bg = self.wall_bg[0]
         self.floor_config = [self.road_char, self.road_fg, self.road_bg, self.wall_char, self.wall_fg, self.wall_bg]
         return
 

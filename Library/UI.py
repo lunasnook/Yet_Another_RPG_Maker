@@ -1425,18 +1425,18 @@ class color_layers:
 
                 for i in range(current_layer[2]):
                     for j in range(current_layer[3]):
+                        alpha = current_layer[5][i][j]
+                        if alpha == 0:
+                            continue
                         bg = tile.screen[current_layer[0] + i][current_layer[1] + j][2]
                         fg = tile.screen[current_layer[0] + i][current_layer[1] + j][1]
 
                         this_color = current_layer[4][i][j]
 
-                        new_bg = color_mix(bg, this_color, current_layer[5][i][j])
-                        new_fg = color_mix(fg, this_color, current_layer[5][i][j])
+                        new_bg = color_mix(bg, this_color, alpha)
+                        new_fg = color_mix(fg, this_color, alpha)
 
-                        tile.screen[current_layer[0] + i][current_layer[1] + j][2][0] = new_bg[0]
-                        tile.screen[current_layer[0] + i][current_layer[1] + j][2][1] = new_bg[1]
-                        tile.screen[current_layer[0] + i][current_layer[1] + j][2][2] = new_bg[2]
-
+                        tile.screen[current_layer[0] + i][current_layer[1] + j][2] = new_bg
                         tile.screen[current_layer[0] + i][current_layer[1] + j][1] = new_fg
 
                 for index in tile.listofentity.keys():
