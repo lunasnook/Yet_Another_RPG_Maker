@@ -120,25 +120,25 @@ class Markov_Weather:
                 for j in range(width):
                     w = updated_map[i][j]
                     if w == 3:
-                        self.color_blend[i][j] = (255, 255, 255)
+                        self.color_blend[i][j] = [255, 255, 255]
                         self.visual[i][j] = 100
                     elif w == 4:
-                        self.color_blend[i][j] = (255, 255, 255)
+                        self.color_blend[i][j] = [255, 255, 255]
                         self.visual[i][j] = 130
                     elif w == 5:
-                        self.color_blend[i][j] = (255, 255, 255)
+                        self.color_blend[i][j] = [255, 255, 255]
                         self.visual[i][j] = 160
                     elif w == 6:
-                        self.color_blend[i][j] = (217, 217, 217)
+                        self.color_blend[i][j] = [217, 217, 217]
                         self.visual[i][j] = 160
                     elif w == 7:
-                        self.color_blend[i][j] = (153, 153, 153)
+                        self.color_blend[i][j] = [153, 153, 153]
                         self.visual[i][j] = 140
                     elif w == 8:
-                        self.color_blend[i][j] = (76, 76, 76)
+                        self.color_blend[i][j] = [76, 76, 76]
                         self.visual[i][j] = 140
                     else:
-                        self.color_blend[i][j] = (217, 217, 217)
+                        self.color_blend[i][j] = [217, 217, 217]
                         self.visual[i][j] = 0
 
             kwargs["window"].get(0)[0].color_blend(0, 0, height, width, self.color_blend, self.visual, 3, self.cloudid)
@@ -159,6 +159,6 @@ class Markov_Weather:
     def act_on_action(self, **kwargs):
         if kwargs["action"][-1][0] == "toggle weather view":
             kwargs["window"].get(0)[0].toggle_show_key(self.cloudid)
-            kwargs["window"].get(0)[0].render_color_blend()
+            # kwargs["window"].get(0)[0].render_color_blend()
             UI.CONTEXT.present(UI.CONSOLE)
         return [0, True]

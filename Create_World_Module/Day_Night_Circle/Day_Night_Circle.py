@@ -30,7 +30,7 @@ class Day_Night_Circle:
         self.end_set = obj['end_set']
         self.circle_level_index = obj['circle_level_index']
         self.color_blend = obj["color_blend"]
-        self.color = tuple(obj["color"])
+        self.color = obj["color"]
         self.max_alpha = obj["max_alpha"]
         self.color_id = obj["color_id"]
 
@@ -80,7 +80,7 @@ class Day_Night_Circle:
         if self.color_blend:
             color_blend = []
             for h in range(self.height):
-                color_blend.append([self.color]*self.width)
+                color_blend.append([list(self.color)]*self.width)
             visual = kwargs["map"].get_attribute(self.name_of_value)
             visual = [[(1-j)*self.max_alpha for j in i] for i in visual]
             kwargs["window"].get(0)[0].color_blend(0, 0, self.height, self.width, color_blend, visual, 4, self.color_id)
@@ -94,6 +94,6 @@ class Day_Night_Circle:
     def act_on_action(self, **kwargs):
         if kwargs["action"][-1][0] == "toggle day night":
             kwargs["window"].get(0)[0].toggle_show_key(self.color_id)
-            kwargs["window"].get(0)[0].render_color_blend()
+            # kwargs["window"].get(0)[0].render_color_blend()
             UI.CONTEXT.present(UI.CONSOLE)
         return [0, True]

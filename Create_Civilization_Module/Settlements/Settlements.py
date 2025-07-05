@@ -66,7 +66,7 @@ class Settlements:
         self.simulation_id = obj["simulation_id"]
         self.night_id = obj["night_id"]
         self.night_color_id = obj["night_color_id"]
-        self.light = tuple(obj["light"])
+        self.light = obj["light"]
 
         self.settlement_icons = []
 
@@ -95,7 +95,7 @@ class Settlements:
                     else:
                         defaultscreen = []
                         for defualt_i in range(self.height):
-                            defaultscreen.append([(32, (76, 76, 76), BG)] * self.width)
+                            defaultscreen.append([[32, [76, 76, 76], list(BG)]] * self.width)
                         submap = mapclass.MapData(self.height, self.width)
                         submap.set_default_screen(defaultscreen)
                         self.maps.set_submap(j, k, self.settlement_name[i], self.id, submap)
@@ -104,10 +104,11 @@ class Settlements:
             for i in range(self.max_num_settlements):
                 if self.statistics[i] != 0:
                     if kwargs["map"].get_attribute_at(self.night_color_id, self.positions[i][0], self.positions[i][1]) == 0:
-                        self.settlement_icons[i].update_color(self.light)
+                        self.settlement_icons[i].update_default_color(self.light)
                         self.settlement_icons[i].no_color_layer = True
                         # self.settlement_icons[i].tilewindow.color_layers.dig_hole_in_layer("day_night", self.positions[i][0], self.positions[i][1], 1, 1, 110, self.settlement_name[i] + "_nightlight")
                     else:
+                        self.settlement_icons[i].update_default_color(self.icon_color)
                         self.settlement_icons[i].no_color_layer = False
         return
 

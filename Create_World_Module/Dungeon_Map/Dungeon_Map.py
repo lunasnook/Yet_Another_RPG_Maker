@@ -30,6 +30,7 @@ class Dungeon_Map_Data:
         width: int,
         max_depth: int,
         min_size: int,
+        floor_config: list
     ) -> None:
         self.position_y = position_y
         self.position_x = position_x
@@ -41,7 +42,8 @@ class Dungeon_Map_Data:
         # 额外数据 ── reserved 记录“已用 + 缓冲”区域
         self._buffer = 1
         self._reserved = np.zeros_like(self.dungeon_map, dtype=bool)
-        self.screen: list[list[tuple]] = []
+        self.screen: list[list[list]] = []
+        self.floor_config = floor_config
 
     # --------------------------------------------------------
     # 房间
@@ -189,9 +191,9 @@ class Dungeon_Map_Data:
             row = []
             for x in range(self.width):
                 if self.dungeon_map[y, x] == 1:
-                    row.append((32, (76, 76, 76), (255, 255, 255)))
+                    row.append([' ', [180, 180, 180], [60, 60, 60]])
                 else:
-                    row.append((32, (76, 76, 76), (0, 0, 0)))
+                    row.append(['▓', [180, 180, 180], [120, 120, 120]])
             self.screen.append(row)
 
         pass_enter = [[entrance[1], entrance[0]]]
@@ -217,6 +219,15 @@ class Dungeon_Map:
 
         self.player_id = obj["player_id"]
         self.list_submap = []
+        self.start_view_dist = obj["start_view_dist"]
+
+        self.road_char = obj["road_char"],
+        self.road_fg = obj["road_fg"],
+        self.road_bg = obj["road_bg"],
+        self.wall_char = obj["wall_char"],
+        self.wall_fg = obj["wall_fg"],
+        self.wall_bg = obj["wall_bg"],
+        self.floor_config = [self.road_char, self.road_fg, self.road_bg, self.wall_char, self.wall_fg, self.wall_bg]
         return
 
     def update(self, **kwargs) -> None:
@@ -227,9 +238,10 @@ class Dungeon_Map:
                 n = random.randint(0, maps.get_height() - 1)
                 m = random.randint(0, maps.get_width() - 1)
                 if maps.get_attribute_at("biomes", n, m) != self.biome_exception:
-                    dungeon_map_data = Dungeon_Map_Data(n, m, self.dmap_height, self.dmap_width, self.max_depth, self.min_size)
+                    dungeon_map_data = Dungeon_Map_Data(n, m, self.dmap_height, self.dmap_width, self.max_depth, self.min_size, self.floor_config)
                     self.dungeon_maps.append(dungeon_map_data)
                     submap = dungeon_map_data.get_dungeon_map()
+                    submap._view_dist = self.start_view_dist
                     self.list_submap.append(submap)
                     maps.set_submap(n, m, "dungeon entrance", self.id, submap)
                     UI.ntcod_entity(self.icon, self.icon_color, n, m, kwargs["window"].get(0)[0], self.id)

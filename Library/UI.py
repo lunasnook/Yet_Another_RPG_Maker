@@ -156,7 +156,7 @@ def color_rotation_calculator(
         if len(selected) >= count:
             break
 
-    result_colors = [rgb for rgb, _ in selected]
+    result_colors = [list(rgb) for rgb, _ in selected]
 
     # ---------- Reorder to Maximize Perceptual Separation ----------
 
@@ -175,14 +175,14 @@ def color_rotation_calculator(
             used[next_i] = True
         return [colors[i] for i in order]
     if len(result_colors) < 2:
-        return [(192, 192, 192), (43, 43, 43)]
+        return [[192, 192, 192], [43, 43, 43]]
     return reorder_colors_maximize_difference(result_colors)
-BGL = (195, 195, 195)
-FGNL = (94, 94, 94)
-FGFL = (0, 0, 0)
-BGD = (57, 57, 57)
-FGND = (128, 128, 128)
-FGFD = (220, 220, 220)
+BGL = [195, 195, 195]
+FGNL = [94, 94, 94]
+FGFL = [0, 0, 0]
+BGD = [57, 57, 57]
+FGND = [128, 128, 128]
+FGFD = [220, 220, 220]
 BG = BGL
 FGN = FGNL
 FGF = FGFL
@@ -195,19 +195,20 @@ NUM_COLOR = 8
 # ====================
 COLOR_TEXT = [FGF]
 # ====================
-COLOR_PLAYER = (43, 43, 43)
+COLOR_PLAYER = [43, 43, 43]
 # ====================
 ALPHA = 220
 
 
+def color_mix(color1, color2, alpha):
+    r = color2[0] / 255 * alpha / 255 + color1[0] / 255 * (1 - alpha / 255)
+    g = color2[1] / 255 * alpha / 255 + color1[1] / 255 * (1 - alpha / 255)
+    b = color2[2] / 255 * alpha / 255 + color1[2] / 255 * (1 - alpha / 255)
+    return [int(r * 255), int(g * 255), int(b * 255)]
+
+
 def alpha_print(y, x, string, fg=None, bg=None, alpha=ALPHA,
                 frame_width=WIDTH, frame_height=HEIGHT):
-    def color_mix(color1, color2, alpha):
-        r = color2[0] / 255 * alpha / 255 + color1[0] / 255 * (1 - alpha / 255)
-        g = color2[1] / 255 * alpha / 255 + color1[1] / 255 * (1 - alpha / 255)
-        b = color2[2] / 255 * alpha / 255 + color1[2] / 255 * (1 - alpha / 255)
-        return int(r * 255), int(g * 255), int(b * 255)
-
     if fg is None:
         fg = FGF
 
@@ -241,7 +242,7 @@ def alpha_print(y, x, string, fg=None, bg=None, alpha=ALPHA,
             final_fg = fg
             final_bg = color_mix(old_bg_tuple, bg, alpha) if bg is not None else old_bg_tuple
 
-        CONSOLE.print(cx, cy, final_char, fg=final_fg, bg=final_bg)
+        CONSOLE.print(cx, cy, final_char, fg=list(final_fg), bg=list(final_bg))
 
 
 def tcod_event(event, shift=False):
@@ -370,7 +371,7 @@ class tcod_window:
                     event_code = tcod_event(event)
                 if self.frames_in_window[self.focus][1] == "ntcod_menu":
                     ##########
-                    if event_code == ["S", "TAB"]:
+                    if (self.focus != 2) and (event_code == ["S", "TAB"]):
                         self.frames_in_window[1][0].next_page()
                         continue
                     ##########
@@ -473,22 +474,14 @@ class tcod_window:
                         else:
                             if isinstance(this_menu[-1][current_key], ntcod_menu):
                                 ##########
-                                if self.focus == 2:
+                                if (self.focus == 2) and (isinstance(self.frames_in_window[1][0], list_of_ntcod_textout)):
                                     secondary = this_menu[-1][current_key].menu["title"]
                                     if secondary in self.frames_in_window[1][0].list_of_ntcod_textout.keys():
                                         self.frames_in_window[1][0].change_base(secondary)
-                                        self.frames_in_window[1][0].set_default()
-                                        self.frames_in_window[1][0].set_hide(False)
+                                        self.frames_in_window[1][0].add_to_window(self)
                                 ##########
                                 self.add_frame(this_menu[-1][current_key], "sub_menu")
                                 sepe_way = self.display()
-                                ##########
-                                ##########
-                                if self.focus == 2:
-                                    if hasattr(self.frames_in_window[1][0], "set_hide"):
-                                        self.frames_in_window[1][0].set_hide(True)
-                                ##########
-                                ##########
                                 if sepe_way == "last_page":
                                     continue
                                 return_position = copy.deepcopy(position)
@@ -499,6 +492,15 @@ class tcod_window:
                                 return_position.append(this_menu[-1][current_key])
                             return return_position
                     if (event_code == ["N", "x"]) | (event_code == ["S", "BACKSPACE"]):
+                        ##########
+                        if isinstance(self.frames_in_window[1][0], list_of_ntcod_textout):
+                            secondary = this_menu[-1]["title"]
+                            if secondary in self.frames_in_window[1][0].list_of_ntcod_textout.keys():
+                                try:
+                                    self.frames_in_window[1][0].remove_from_window(self)
+                                except:
+                                    pass
+                        ##########
                         if (self.frames_in_window[self.focus][0].get_parent_menu() is not None) and (len(self.frames_in_window[self.focus][0].this_menu) == 1):
                             self.remove_frame("sub_menu")
                             continue
@@ -609,10 +611,12 @@ class list_of_ntcod_textout:
         default_illusion = ntcod_textout(OSHS, OFWS, HEIGHT - OFHS - OSHS, WIDTH - 2 * OFWS, "", smart_page=True, show_page=True, draw_frame=False)
         self.list_of_ntcod_textout = {"999999999": default_illusion}
         self.based = "999999999"
-        self.hide = True
 
-    def set_hide(self, hide):
-        self.hide = hide
+    def add_to_window(self, window):
+        window.add_frame(self.list_of_ntcod_textout[self.based], frameid="list_textout", change_focus=False)
+
+    def remove_from_window(self, window):
+        window.remove_frame(frameid="list_textout")
 
     def get_first_levels(self):
         return self.list_of_ntcod_textout.keys()
@@ -644,22 +648,19 @@ class list_of_ntcod_textout:
         self.list_of_ntcod_textout[self.based].set_current_page("overview")
 
     def get_keys(self):
-        self.list_of_ntcod_textout[self.based].get_keys()
+        return self.list_of_ntcod_textout[self.based].get_keys()
 
-    def clear(self):
-        default_illusion = ntcod_textout(OSHS, OFWS, HEIGHT - OFHS - OSHS, WIDTH - 2 * OFWS, "", smart_page=True,
-                                         show_page=True, draw_frame=False)
-        self.list_of_ntcod_textout = {"999999999": default_illusion}
-        self.based = "999999999"
+    def clear(self, change_base=True):
+        for i in self.list_of_ntcod_textout.keys():
+            self.list_of_ntcod_textout[i].clear()
+        if change_base or (self.based not in self.list_of_ntcod_textout.keys()):
+            self.based = list(self.list_of_ntcod_textout.keys())[0]
+
 
     def display(self):
-        if not self.hide:
-            self.list_of_ntcod_textout[self.based].display()
         return
 
     def display_frame(self):
-        if not self.hide:
-            self.list_of_ntcod_textout[self.based].display_frame()
         return
 
     def set_frame(self, draw_frame):
@@ -674,12 +675,10 @@ class list_of_ntcod_textout:
         return
 
     def get_keys(self):
-        self.list_of_ntcod_textout[self.based].get_keys()
-        return
+        return self.list_of_ntcod_textout[self.based].get_keys()
 
     def get_smart_pages(self):
-        self.list_of_ntcod_textout[self.based].get_smart_pages()
-        return
+        return self.list_of_ntcod_textout[self.based].get_smart_pages()
 
 
 class ntcod_textout(tcod_frame):
@@ -1243,6 +1242,15 @@ class ntcod_menu(tcod_frame):
                 del self.menu[i]
         self.index = 0
 
+    def re_initialize(self):
+        for i in list(self.menu.keys()):
+            if i != "title":
+                if isinstance(self.menu[i], ntcod_menu):
+                    self.menu[i].re_initialize()
+                else:
+                    del self.menu[i]
+                    self.index = len(self.menu)
+
 
     def display(self):
         # self.finalize_adaptive_menu()
@@ -1341,7 +1349,11 @@ class color_layers:
             self.show[key] = True
 
     def delete_layer(self, key):
-        del self.color_layers[key]
+        if key in list(self.color_layers.keys()):
+            del self.color_layers[key]
+            return True
+        else:
+            return False
 
     def toggle_show_key(self, key):
         if key in list(self.show.keys()):
@@ -1411,6 +1423,22 @@ class color_layers:
                 rendered[top_priority_key] = True
                 current_layer = self.color_layers[top_priority_key]
 
+                for i in range(current_layer[2]):
+                    for j in range(current_layer[3]):
+                        bg = tile.screen[current_layer[0] + i][current_layer[1] + j][2]
+                        fg = tile.screen[current_layer[0] + i][current_layer[1] + j][1]
+
+                        this_color = current_layer[4][i][j]
+
+                        new_bg = color_mix(bg, this_color, current_layer[5][i][j])
+                        new_fg = color_mix(fg, this_color, current_layer[5][i][j])
+
+                        tile.screen[current_layer[0] + i][current_layer[1] + j][2][0] = new_bg[0]
+                        tile.screen[current_layer[0] + i][current_layer[1] + j][2][1] = new_bg[1]
+                        tile.screen[current_layer[0] + i][current_layer[1] + j][2][2] = new_bg[2]
+
+                        tile.screen[current_layer[0] + i][current_layer[1] + j][1] = new_fg
+
                 for index in tile.listofentity.keys():
                     for entity in tile.listofentity[index]:
                         if (entity.y - current_layer[0] >= 0) and (entity.y - current_layer[0] < current_layer[2]):
@@ -1418,24 +1446,8 @@ class color_layers:
                                 if not entity.no_color_layer:
                                     bg = entity.color
                                     this_color = current_layer[4][entity.y - current_layer[0]][entity.x - current_layer[1]]
-                                    newR = this_color[0] / 255 * current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255 + bg[0] / 255 * (
-                                                1 - current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255)
-                                    newG = this_color[1] / 255 * current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255 + bg[1] / 255 * (
-                                                1 - current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255)
-                                    newB = this_color[2] / 255 * current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255 + bg[2] / 255 * (
-                                                1 - current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]] / 255)
-                                    entity.update_color(tuple([int(newR * 255), int(newG * 255), int(newB * 255)]))
-
-                for i in range(current_layer[2]):
-                    for j in range(current_layer[3]):
-                        bg = tile.screen[current_layer[0] + i][current_layer[1] + j][2]
-                        this_color = current_layer[4][i][j]
-                        newR = this_color[0] / 255 * current_layer[5][i][j] / 255 + bg[0] / 255 * (1 - current_layer[5][i][j] / 255)
-                        newG = this_color[1] / 255 * current_layer[5][i][j] / 255 + bg[1] / 255 * (1 - current_layer[5][i][j] / 255)
-                        newB = this_color[2] / 255 * current_layer[5][i][j] / 255 + bg[2] / 255 * (1 - current_layer[5][i][j] / 255)
-                        tile.screen[current_layer[0] + i][current_layer[1] + j][2][0] = int(newR * 255)
-                        tile.screen[current_layer[0] + i][current_layer[1] + j][2][1] = int(newG * 255)
-                        tile.screen[current_layer[0] + i][current_layer[1] + j][2][2] = int(newB * 255)
+                                    new_color = color_mix(bg, this_color, current_layer[5][entity.y - current_layer[0]][entity.x - current_layer[1]])
+                                    entity.update_color([new_color[0], new_color[1], new_color[2]])
 
 
 class ntcod_tile(tcod_frame):
@@ -1476,8 +1488,17 @@ class ntcod_tile(tcod_frame):
 
     def display(self):
         if self.height >= self.final_y_span and self.width >= self.final_x_span:
-            CONSOLE.rgb[self.final_start_y:self.final_start_y + self.final_y_span, self.final_start_x:self.final_start_x + self.final_x_span] = \
-                [sublist[self.tileprintstart_x:self.tileprintstart_x + self.final_x_span] for sublist in self.screen[self.tileprintstart_y:self.tileprintstart_y + self.final_y_span]]
+            newconsole = []
+            for row in self.screen[self.tileprintstart_y:self.tileprintstart_y + self.final_y_span]:
+                newline = []
+                for cell in row[self.tileprintstart_x:self.tileprintstart_x + self.final_x_span]:
+                    if isinstance(cell[0], str):
+                        newline.append(tuple([ord(cell[0]), cell[1], list(cell[2])]))
+                    else:
+                        newline.append(tuple([cell[0], cell[1], list(cell[2])]))
+                newconsole.append(newline)
+            CONSOLE.rgb[self.final_start_y:self.final_start_y + self.final_y_span, self.final_start_x:self.final_start_x + self.final_x_span] = newconsole
+
 
         for index in list(self.listofentity.keys()):
             if (self.rpgplayer is not None) and (self.rpgplayer.current_view == "all"):
@@ -1489,6 +1510,8 @@ class ntcod_tile(tcod_frame):
             elif (self.rpgplayer is not None) and ((index == "player") or (index == self.rpgplayer.current_view)):
                 for entity in self.listofentity[index]:
                     entity.display()
+
+        self.render_color_blend()
 
     def set_player(self, rpgplayer):
         self.rpgplayer = rpgplayer
@@ -1536,6 +1559,15 @@ class ntcod_tile(tcod_frame):
             self.overlap_entities.append(self.entity_xys[tuple(entity.get_posi())])
         else:
             self.entity_xys[tuple(entity.get_posi())] = entity
+
+    def add_permanent_entity(self, entity, modid):
+        if modid in self.listofentity.keys():
+            self.listofentity[modid].append(entity)
+        else:
+            self.listofentity[modid] = [entity]
+        if modid not in self.viewmods.values():
+            self.viewmods[len(self.viewmods)] = modid
+        self.entity_xys[tuple(entity.get_posi())] = entity
 
     def get_player_entity(self):
         return self.listofentity["player"][0]

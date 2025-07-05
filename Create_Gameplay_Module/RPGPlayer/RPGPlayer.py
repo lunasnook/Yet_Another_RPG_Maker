@@ -38,6 +38,7 @@ class RPGPlayer:
         self.view_mods_initiated = False
         self.view_mods = None
         self.walkable = []
+        self.last_bg = None
         return
 
     def update(self, **kwargs) -> None:
@@ -66,12 +67,22 @@ class RPGPlayer:
             self.walkable.append(self.maps[-1].get_walkable())
 
         if not self.player_added:
-            self.icon = UI.ntcod_entity(self.image, tuple(self.color), self.posi_y, self.posi_x, tilewindow=self.current_tile, modid="player")
+            self.icon = UI.ntcod_entity(self.image, self.color, self.posi_y, self.posi_x, tilewindow=self.current_tile, modid="player", autoadd=False)
+            self.icon.no_color_layer = True
+            self.current_tile.add_permanent_entity(self.icon, "player")
             self.icon_levels.append(self.icon)
             self.player_added = True
 
         self.current_tile.compute_startxy_from_entity(self.posi_y, self.posi_x)
         self.icon.update(self.posi_y, self.posi_x)
+        icon_bg = self.current_tile.screen[self.posi_y][self.posi_x][2]
+        if (self.last_bg is None) or (tuple(self.last_bg) != tuple(icon_bg)):
+            if sum(icon_bg) > 382.5:
+                new_color = [0, 0, 0]
+            else:
+                new_color = [255, 255, 255]
+            self.icon_levels[-1].update_default_color(new_color)
+            self.last_bg = icon_bg
         return
 
     def print(self, **kwargs):
@@ -137,6 +148,8 @@ class RPGPlayer:
             this_menu_UI = UI.ntcod_menu(OTH, OTW, OTH, OTW, title="List of Maps")
             this_menu_UI.set_direct_menu(menu_of_submap)
             choice = window.pop_frame(this_menu_UI)
+            if choice == "last_page":
+                return [0, True]
             for i in range(index):
                 if menu_of_submap[i] == choice[-1][0]:
                     choice = i

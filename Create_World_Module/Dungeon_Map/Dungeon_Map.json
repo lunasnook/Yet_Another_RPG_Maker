@@ -11,5 +11,12 @@
   "icon": "Ω",
   "icon_color": [106, 10, 0],
   "player_id": "rpgplayer",
-  "comment": "need general data"
+  "start_view_dist": 8,
+  "comment": "need general data",
+  "road_char": " ",
+  "road_fg": [180, 180, 180],
+  "road_bg": [60, 60, 60],
+  "wall_char": "▓",
+  "wall_fg": [180, 180, 180],
+  "wall_bg": [120, 120, 120]
 }

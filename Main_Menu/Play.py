@@ -25,7 +25,6 @@ def main_update(action_time, local_map: Main_Menu.Create_World_State.MapData, pe
             mods[mod].update(action_time=action_time)
         else:
             mods[mod].update(map=local_map, peoples=peoples, mods=mods, window=window)
-    window.get(0)[0].render_color_blend()
     end_operation = time.time()
     return [str(action_time), str(end_operation - start_operation)]
 
@@ -76,12 +75,13 @@ def play(continue_game = False) -> None:
         window = UI.tcod_window(maintile, mainout, mainmenu)
         window.set_focus(0)
     action_time, elapse_time = main_update(1, local_map, peoples, mods, window)
+    mainout.check_based("System", mainmenu)
+    mainout.change_base("System")
     while True:
         UI.CONSOLE.clear()
-        mainout.clear()
-        mainmenu.clear()
+        mainout.clear(change_base=False)
+        mainmenu.re_initialize()
         mainout.check_based("System", mainmenu)
-        mainout.change_base("System")
         for mod in list(mods.keys()):
             textoutput = mods[mod].print(map=local_map, peoples=peoples, mods=mods)
             if textoutput is not None:
@@ -153,3 +153,4 @@ def play(continue_game = False) -> None:
                 # window.add_frame(processing_info,"system_processing", change_focus=False)
                 # window.display_all()
                 action_time, elapse_time = main_update(actions, local_map, peoples, mods, window)
+                menu_continue = False

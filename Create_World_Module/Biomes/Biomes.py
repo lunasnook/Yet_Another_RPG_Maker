@@ -104,11 +104,12 @@ class Biomes:
                 elif elevation[y][x] <= 27:
                     biomes[y][x] = 16
                     self.biomesout[y][x] = (234, 222, 181)
+                self.biomesout[y][x] = list(self.biomesout[y][x])
 
         biomes = numpy.array(biomes)
         local_map.set_attribute(self.id, biomes)
 
-        tiles = [[(ord(" "), FGN, x) for x in row] for row in self.biomesout]
+        tiles = [[[ord(" "), FGN, x] for x in row] for row in self.biomesout]
         local_map.set_default_screen(tiles)
         return
 
